@@ -212,7 +212,7 @@ export const PoseDetailView: React.FC<Props> = ({
       </Accordion>
 
       {pose.commonMistakes.length > 0 && (
-        <Block
+        <Accordion
           title="اشتباهات رایج"
           icon={<AlertTriangle className="w-4 h-4" style={{ color: 'var(--color-rose)' }} />}
         >
