@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { X, Camera, Trash2, Plus, Save, ImagePlus, Loader2 } from 'lucide-react';
+import { X, Camera, Trash2, Plus, Save, ImagePlus, Loader2, ZoomIn, ZoomOut, Check, Move } from 'lucide-react';
 import {
   ArtKey,
   CategoryType,
@@ -9,9 +9,9 @@ import {
   PoseType,
 } from '../types/pose';
 import { LOCATION_KEYS } from '../data/locations';
-import { saveCustomPose } from '../services/storage';
+import { getCustomPoses, nextTransferCode, saveCustomPose } from '../services/storage';
 import { artForText, progressionMeta } from '../data/poses';
-import { approxDataUrlKb, fileToCompressedDataUrl } from '../services/media';
+import { approxDataUrlKb } from '../services/media';
 import { PoseVisual } from './PoseVisual';
 
 const CATEGORIES: CategoryType[] = [
@@ -20,7 +20,6 @@ const CATEGORIES: CategoryType[] = [
   'داماد',
   'زوج',
   'گروهی',
-  'کودک و خانواده',
 ];
 const TYPES: PoseType[] = [
   'ایستاده',
@@ -116,6 +115,7 @@ export const AddPoseSheet: React.FC<Props> = ({ open, onClose, onSaved, editing 
 
   const [busy, setBusy] = useState(false);
   const [image, setImage] = useState<string | undefined>();
+  const [cropSource, setCropSource] = useState<string | undefined>();
   const [title, setTitle] = useState('');
   const [category, setCategory] = useState<CategoryType>('عروس و داماد');
   const [poseType, setPoseType] = useState<PoseType>('ایستاده');
@@ -170,8 +170,13 @@ export const AddPoseSheet: React.FC<Props> = ({ open, onClose, onSaved, editing 
     if (!file) return;
     setBusy(true);
     try {
-      const compressed = await fileToCompressedDataUrl(file);
-      setImage(compressed);
+      const source = await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(String(reader.result));
+        reader.onerror = () => reject(new Error('read-failed'));
+        reader.readAsDataURL(file);
+      });
+      setCropSource(source);
     } catch {
       onSaved('عکس خوانده نشد. یک عکس دیگر را امتحان کنید.', false);
     } finally {
@@ -188,6 +193,10 @@ export const AddPoseSheet: React.FC<Props> = ({ open, onClose, onSaved, editing 
 
     if (!title.trim()) {
       onSaved('عنوان ژست را وارد کنید.', false);
+      return;
+    }
+    if (!image) {
+      onSaved('اول عکس ژست را اضافه کن؛ این برنامه برای ژست‌های عکس‌محور طراحی شده است.', false);
       return;
     }
     if (cleanSteps.length === 0) {
@@ -207,6 +216,7 @@ export const AddPoseSheet: React.FC<Props> = ({ open, onClose, onSaved, editing 
 
     const pose: Pose = {
       id: editing?.id || `mine-${Date.now()}`,
+      transferCode: editing?.transferCode || nextTransferCode(getCustomPoses()),
       title: title.trim(),
       category,
       poseType,
@@ -280,7 +290,15 @@ export const AddPoseSheet: React.FC<Props> = ({ open, onClose, onSaved, editing 
   };
 
   return (
-    <div className="fixed inset-0 z-[80] flex items-end sm:items-center justify-center">
+    <>
+      {cropSource && (
+        <PhotoCropper
+          source={cropSource}
+          onCancel={() => setCropSource(undefined)}
+          onConfirm={(cropped) => { setImage(cropped); setCropSource(undefined); }}
+        />
+      )}
+      <div className="fixed inset-0 z-[80] flex items-end sm:items-center justify-center">
       <div
         className="absolute inset-0"
         style={{ background: 'rgba(4,3,8,.6)', backdropFilter: 'blur(4px)' }}
@@ -497,6 +515,72 @@ export const AddPoseSheet: React.FC<Props> = ({ open, onClose, onSaved, editing 
           </button>
         </div>
       </div>
+    </div>
+    </>
+  );
+};
+
+
+interface PhotoCropperProps {
+  source: string;
+  onCancel: () => void;
+  onConfirm: (dataUrl: string) => void;
+}
+
+/** ویرایشگر ساده و آفلاین عکس: زوم، جابه‌جایی و تأیید کادر */
+const PhotoCropper: React.FC<PhotoCropperProps> = ({ source, onCancel, onConfirm }) => {
+  const [zoom, setZoom] = useState(1);
+  const [x, setX] = useState(0);
+  const [y, setY] = useState(0);
+  const [busy, setBusy] = useState(false);
+
+  const confirm = () => {
+    setBusy(true);
+    const img = new Image();
+    img.onload = () => {
+      const outW = 1100;
+      const outH = 825;
+      const canvas = document.createElement('canvas');
+      canvas.width = outW;
+      canvas.height = outH;
+      const ctx = canvas.getContext('2d');
+      if (!ctx) return;
+      const base = Math.max(outW / img.width, outH / img.height);
+      const scale = base * zoom;
+      const w = img.width * scale;
+      const h = img.height * scale;
+      const dx = (outW - w) / 2 + x * outW * 0.35;
+      const dy = (outH - h) / 2 + y * outH * 0.35;
+      ctx.fillStyle = '#120f1c';
+      ctx.fillRect(0, 0, outW, outH);
+      ctx.drawImage(img, dx, dy, w, h);
+      onConfirm(canvas.toDataURL('image/jpeg', 0.78));
+      setBusy(false);
+    };
+    img.onerror = () => setBusy(false);
+    img.src = source;
+  };
+
+  return (
+    <div className="fixed inset-0 z-[95] flex items-center justify-center p-3" dir="rtl">
+      <div className="absolute inset-0" style={{ background: 'rgba(4,3,8,.86)' }} />
+      <section className="relative w-full max-w-lg card overflow-hidden" role="dialog" aria-label="تنظیم کادر عکس">
+        <header className="flex items-center gap-3 px-4 py-3 border-b border-line">
+          <Move className="w-5 h-5 text-gold" />
+          <div className="flex-1"><h2 className="font-extrabold text-[15px]">تنظیم عکس ژست</h2><p className="text-[10px] text-muted mt-1">عکس را زوم و در کادر جابه‌جا کن، بعد تأیید بزن.</p></div>
+          <button onClick={onCancel} className="p-2 text-muted" aria-label="لغو"><X className="w-5 h-5" /></button>
+        </header>
+        <div className="p-4 space-y-4">
+          <div className="relative aspect-[4/3] rounded-2xl overflow-hidden border border-gold bg-[#120f1c]">
+            <img src={source} alt="پیش‌نمایش عکس" className="absolute inset-0 w-full h-full object-contain" style={{ transform: `translate(${x * 35}%, ${y * 35}%) scale(${zoom})` }} />
+            <div className="absolute inset-0 pointer-events-none" style={{ boxShadow: 'inset 0 0 0 2px color-mix(in srgb, var(--color-gold) 80%, transparent)' }} />
+            <span className="absolute top-2 right-2 pill !text-[9px]">کادر نهایی ۴:۳</span>
+          </div>
+          <div className="flex items-center gap-3"><ZoomOut className="w-4 h-4 text-muted" /><input aria-label="میزان زوم" type="range" min="1" max="3" step="0.05" value={zoom} onChange={(e)=>setZoom(Number(e.target.value))} className="flex-1 accent-gold"/><ZoomIn className="w-4 h-4 text-gold" /></div>
+          <div className="grid grid-cols-2 gap-3"><label className="text-[10px] text-muted">جابه‌جایی افقی<input type="range" min="-1" max="1" step="0.01" value={x} onChange={(e)=>setX(Number(e.target.value))} className="w-full accent-gold mt-2"/></label><label className="text-[10px] text-muted">جابه‌جایی عمودی<input type="range" min="-1" max="1" step="0.01" value={y} onChange={(e)=>setY(Number(e.target.value))} className="w-full accent-gold mt-2"/></label></div>
+          <div className="flex gap-2"><button onClick={()=>{setZoom(1);setX(0);setY(0);}} className="btn btn-ghost flex-1 !text-[11px]">بازنشانی کادر</button><button onClick={confirm} disabled={busy} className="btn btn-primary flex-1 !text-[11px]">{busy ? <Loader2 className="w-4 h-4 animate-spin"/> : <Check className="w-4 h-4"/>}تأیید عکس</button></div>
+        </div>
+      </section>
     </div>
   );
 };

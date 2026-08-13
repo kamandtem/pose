@@ -133,11 +133,11 @@ export const ShootMode: React.FC<Props> = ({
           </span>
         </div>
 
+        <ScriptPanel lines={pose.photographerScript} big={bigScript} />
+
         <PoseChecklist pose={pose} />
 
         <button onClick={() => setFilmOpen(true)} className="btn w-full !py-3.5" style={{background:'color-mix(in srgb, var(--color-rose) 14%, transparent)',border:'1px solid color-mix(in srgb, var(--color-rose) 45%, transparent)',color:'var(--color-rose)'}}><span>🎬</span> فیلم‌برداری همین ژست، ساخت پلان</button>
-
-        <ScriptPanel lines={pose.photographerScript} big={bigScript} />
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div className="card p-3.5">

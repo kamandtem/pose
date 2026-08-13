@@ -31,6 +31,7 @@ interface Props {
   onNextPose: () => void;
   onOpenShootMode: () => void;
   onDataChanged: () => void;
+  onDelete: (pose: Pose) => void;
   onToast: (text: string, ok?: boolean) => void;
   bigScript: boolean;
 }
@@ -43,6 +44,7 @@ export const PoseDetailView: React.FC<Props> = ({
   onNextPose,
   onOpenShootMode,
   onDataChanged,
+  onDelete,
   onToast,
   bigScript,
 }) => {
@@ -110,6 +112,15 @@ export const PoseDetailView: React.FC<Props> = ({
           </button>
 
           <button
+            onClick={() => onDelete(pose)}
+            className="absolute top-3 left-14 p-2 rounded-full"
+            style={{ background: 'rgba(8,6,14,.55)', backdropFilter: 'blur(6px)' }}
+            aria-label="حذف ژست"
+          >
+            <Trash2 className="w-5 h-5" style={{ color: 'var(--color-rose)' }} />
+          </button>
+
+          <button
             onClick={(e) => onToggleFavorite(pose.id, e)}
             className="absolute top-3 left-3 p-2 rounded-full"
             style={{
@@ -174,11 +185,23 @@ export const PoseDetailView: React.FC<Props> = ({
         </button>
       </div>
 
+      <ScriptPanel lines={pose.photographerScript} big={bigScript} />
+
+      {pose.variations.length > 0 && (
+        <Accordion title="تنوع‌های همین ژست" icon={<Repeat className="w-4 h-4 text-gold" />}>
+          <div className="flex flex-wrap gap-1.5">
+            {pose.variations.map((v, i) => (
+              <span key={i} className="pill !text-[11px] !py-1.5">
+                {v}
+              </span>
+            ))}
+          </div>
+        </Accordion>
+      )}
+
       <PoseChecklist pose={pose} />
 
       <button onClick={() => setFilmOpen(true)} className="btn w-full !py-3.5" style={{background:'color-mix(in srgb, var(--color-rose) 14%, transparent)',border:'1px solid color-mix(in srgb, var(--color-rose) 45%, transparent)',color:'var(--color-rose)'}}><span>🎬</span> فیلم‌برداری همین ژست، ساخت پلان</button>
-
-      <ScriptPanel lines={pose.photographerScript} big={bigScript} />
 
       {/* مراحل اجرا */}
       <Accordion defaultOpen title="مراحل اجرا">
@@ -227,18 +250,6 @@ export const PoseDetailView: React.FC<Props> = ({
               </li>
             ))}
           </ul>
-        </Accordion>
-      )}
-
-      {pose.variations.length > 0 && (
-        <Accordion title="تنوع‌های همین ژست" icon={<Repeat className="w-4 h-4 text-gold" />}>
-          <div className="flex flex-wrap gap-1.5">
-            {pose.variations.map((v, i) => (
-              <span key={i} className="pill !text-[11px] !py-1.5">
-                {v}
-              </span>
-            ))}
-          </div>
         </Accordion>
       )}
 

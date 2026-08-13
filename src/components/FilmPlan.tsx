@@ -1,10 +1,11 @@
 import React, { useMemo, useState } from 'react';
-import { Camera, Clapperboard, ChevronDown, CircleStop, Play, RotateCcw, X } from 'lucide-react';
+import { Camera, Clapperboard, ChevronDown, CircleStop, Play, RotateCcw, X, Save } from 'lucide-react';
 import { Pose } from '../types/pose';
+import { FilmNote, getFilmNotes, saveFilmNote } from '../services/storage';
 
 interface Props { pose: Pose; open: boolean; onClose: () => void; }
 
-function planFor(p: Pose) {
+function planFor(p: Pose): FilmNote {
   const moving = ['راه رفتن','حرکتی'].includes(p.poseType);
   const intimate = ['رمانتیک','بغل کردن'].includes(p.poseType);
   return {
@@ -19,26 +20,28 @@ function planFor(p: Pose) {
   };
 }
 
+const LABELS: { key: keyof FilmNote; title: string; icon: React.ReactNode }[] = [
+  { key: 'start', title: 'نقطه شروع پلان', icon: <Play/> },
+  { key: 'movement', title: 'حرکت اصلی', icon: <RotateCcw/> },
+  { key: 'camera', title: 'حرکت و تنظیم دوربین', icon: <Camera/> },
+  { key: 'direction', title: 'دستور به سوژه', icon: <Play/> },
+  { key: 'sound', title: 'صدا و فضا', icon: <CircleStop/> },
+  { key: 'safety', title: 'ایمنی', icon: <X/> },
+  { key: 'transition', title: 'اتصال به نمای بعد', icon: <ChevronDown/> },
+];
+
 export const FilmPlan: React.FC<Props> = ({ pose, open, onClose }) => {
+  const saved = getFilmNotes()[pose.id];
   const [tab, setTab] = useState<'plan'|'camera'>('plan');
-  const data = useMemo(() => planFor(pose), [pose]);
+  const [data, setData] = useState<FilmNote>(saved || planFor(pose));
+  const [editing, setEditing] = useState<string | null>(null);
+  const [savedNow, setSavedNow] = useState(false);
+  React.useEffect(() => { if (open) { setData(getFilmNotes()[pose.id] || planFor(pose)); setEditing(null); setSavedNow(false); } }, [open, pose.id]);
   if (!open) return null;
-  return <div className="fixed inset-0 z-[86] flex items-end sm:items-center justify-center">
-    <div className="absolute inset-0" style={{background:'rgba(4,3,8,.66)',backdropFilter:'blur(4px)'}} onClick={onClose}/>
-    <section className="relative w-full sm:max-w-xl max-h-[92vh] overflow-y-auto no-scrollbar card a-fade-up" style={{borderRadius:'26px 26px 0 0'}} role="dialog" aria-label="پلان فیلم‌برداری">
-      <header className="sticky top-0 z-10 px-4 py-3 flex items-center gap-3 border-b border-line" style={{background:'var(--color-surface)'}}>
-        <span className="w-10 h-10 rounded-xl flex items-center justify-center" style={{background:'color-mix(in srgb, var(--color-rose) 17%, transparent)',color:'var(--color-rose)'}}><Clapperboard className="w-5 h-5"/></span>
-        <div className="flex-1"><span className="text-[10px] font-extrabold text-rose">تبدیل ژست به پلان</span><h2 className="font-extrabold text-[15px] mt-0.5">فیلم‌برداری همین ژست</h2></div>
-        <button onClick={onClose} className="p-2 rounded-full text-muted" aria-label="بستن"><X className="w-5 h-5"/></button>
-      </header>
-      <div className="p-4 space-y-4">
-        <div className="p-3 rounded-2xl" style={{background:'color-mix(in srgb, var(--color-rose) 9%, transparent)'}}><p className="text-[12px] leading-relaxed"><b>نقطه شروع پلان:</b> {data.start}</p></div>
-        <div className="flex gap-1 p-1 rounded-xl" style={{background:'var(--color-surface2)'}}><button onClick={()=>setTab('plan')} className="flex-1 py-2 rounded-lg text-[11px] font-bold" style={{background:tab==='plan'?'var(--color-surface)':'transparent',color:tab==='plan'?'var(--color-rose)':'var(--color-muted)'}}>مسیر پلان</button><button onClick={()=>setTab('camera')} className="flex-1 py-2 rounded-lg text-[11px] font-bold" style={{background:tab==='camera'?'var(--color-surface)':'transparent',color:tab==='camera'?'var(--color-rose)':'var(--color-muted)'}}>دوربین و اجرا</button></div>
-        {tab==='plan' ? <div className="space-y-2.5"><Step icon={<Play/>} title="۱. قاب شروع" text={data.sequence[0]}/><Step icon={<RotateCcw/>} title="۲. حرکت اصلی" text={data.movement}/><Step icon={<CircleStop/>} title="۳. نقطه اوج و پایان" text={`${data.sequence[2]} ${data.sequence[3]}`}/><Step icon={<ChevronDown/>} title="۴. اتصال به نمای بعد" text={data.transition}/></div> : <div className="space-y-2.5"><Step icon={<Camera/>} title="حرکت و تنظیم دوربین" text={data.camera}/><Step icon={<Play/>} title="دستور به سوژه" text={data.direction}/><Step icon={<CircleStop/>} title="صدا و فضا" text={data.sound}/><Step icon={<X/>} title="ایمنی" text={data.safety}/></div>}
-        <div className="p-3 rounded-2xl border border-line"><span className="text-[10px] font-extrabold text-gold">یادآوری کارگردانی</span><p className="text-[12px] leading-relaxed mt-1">یک پلان را با چند حرکت هم‌زمان خراب نکن. قاب شروع، یک حرکت، یک نقطه اوج، کات.</p></div>
-      </div>
-      <footer className="sticky bottom-0 px-4 py-3 border-t border-line" style={{background:'var(--color-surface)'}}><button onClick={onClose} className="btn btn-primary w-full">متوجه شدم، آماده ضبط‌ام</button></footer>
-    </section>
-  </div>;
+  const update = (key: keyof FilmNote, value: string) => setData((d) => ({ ...d, [key]: value }));
+  const save = () => { saveFilmNote(pose.id, data); setSavedNow(true); setEditing(null); setTimeout(() => setSavedNow(false), 1800); };
+  const editBlock = (key: keyof FilmNote, title: string, icon: React.ReactNode) => editing === key ? (
+    <div className="p-3 rounded-2xl border border-gold space-y-2"><div className="flex items-center gap-2 text-[12px] font-bold">{icon}{title}</div><textarea value={String(data[key])} onChange={(e) => update(key, e.target.value)} rows={4} autoFocus className="field resize-none leading-relaxed"/><button onClick={save} className="btn btn-primary !py-2 !text-[11px] w-full"><Save className="w-3.5 h-3.5"/>ثبت این تغییر</button></div>
+  ) : <button onClick={() => setEditing(key)} className="w-full text-right flex items-start gap-3 p-3 rounded-2xl border border-line hover:border-gold"><span className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0 text-rose" style={{background:'color-mix(in srgb, var(--color-rose) 12%, transparent)'}}>{React.cloneElement(icon as React.ReactElement,{className:'w-4 h-4'})}</span><span><b className="block text-[12px]">{title}</b><span className="block text-[11px] text-muted leading-relaxed mt-1">{String(data[key])}</span><span className="block text-[10px] text-gold mt-1">برای ویرایش بزن</span></span></button>;
+  return <div className="fixed inset-0 z-[86] flex items-end sm:items-center justify-center"><div className="absolute inset-0" style={{background:'rgba(4,3,8,.66)',backdropFilter:'blur(4px)'}} onClick={onClose}/><section className="relative w-full sm:max-w-xl max-h-[92vh] overflow-y-auto no-scrollbar card a-fade-up" style={{borderRadius:'26px 26px 0 0'}} role="dialog" aria-label="پلان فیلم‌برداری"><header className="sticky top-0 z-10 px-4 py-3 flex items-center gap-3 border-b border-line" style={{background:'var(--color-surface)'}}><span className="w-10 h-10 rounded-xl flex items-center justify-center" style={{background:'color-mix(in srgb, var(--color-rose) 17%, transparent)',color:'var(--color-rose)'}}><Clapperboard className="w-5 h-5"/></span><div className="flex-1"><span className="text-[10px] font-extrabold text-rose">تبدیل ژست به پلان</span><h2 className="font-extrabold text-[15px] mt-0.5">فیلم‌برداری همین ژست</h2></div><button onClick={onClose} className="p-2 rounded-full text-muted" aria-label="بستن"><X className="w-5 h-5"/></button></header><div className="p-4 space-y-4"><div className="flex gap-1 p-1 rounded-xl" style={{background:'var(--color-surface2)'}}><button onClick={()=>setTab('plan')} className="flex-1 py-2 rounded-lg text-[11px] font-bold" style={{background:tab==='plan'?'var(--color-surface)':'transparent',color:tab==='plan'?'var(--color-rose)':'var(--color-muted)'}}>مسیر پلان</button><button onClick={()=>setTab('camera')} className="flex-1 py-2 rounded-lg text-[11px] font-bold" style={{background:tab==='camera'?'var(--color-surface)':'transparent',color:tab==='camera'?'var(--color-rose)':'var(--color-muted)'}}>دوربین و اجرا</button></div>{editing === 'sequence' ? <div className="p-3 rounded-2xl border border-gold space-y-2"><b className="text-[12px]">مراحل پلان</b><textarea value={data.sequence.join('\n')} onChange={(e)=>setData((d)=>({...d,sequence:e.target.value.split('\n')}))} rows={6} className="field resize-none leading-relaxed"/><button onClick={save} className="btn btn-primary !py-2 !text-[11px] w-full"><Save className="w-3.5 h-3.5"/>ثبت تغییرات</button></div> : tab==='plan' ? <div className="space-y-2.5">{editBlock('start','نقطه شروع پلان',<Play/>)}{editBlock('movement','حرکت اصلی',<RotateCcw/>)}<button onClick={()=>setEditing('sequence')} className="w-full text-right p-3 rounded-2xl border border-line"><b className="text-[12px]">مراحل پلان</b><span className="block text-[11px] text-muted mt-1">{data.sequence.join(' ')}</span><span className="block text-[10px] text-gold mt-1">برای ویرایش بزن</span></button>{editBlock('transition','اتصال به نمای بعد',<ChevronDown/>)}</div> : <div className="space-y-2.5">{editBlock('camera','حرکت و تنظیم دوربین',<Camera/>)}{editBlock('direction','دستور به سوژه',<Play/>)}{editBlock('sound','صدا و فضا',<CircleStop/>)}{editBlock('safety','ایمنی',<X/>)}</div>}<div className="p-3 rounded-2xl border border-line"><span className="text-[10px] font-extrabold text-gold">یادآوری کارگردانی</span><p className="text-[12px] leading-relaxed mt-1">هر بخش را بزن و نکته خودت را اضافه کن. نوشته‌ها برای همین ژست ذخیره می‌شوند.</p></div></div><footer className="sticky bottom-0 px-4 py-3 border-t border-line flex gap-2" style={{background:'var(--color-surface)'}}><button onClick={save} className="btn btn-ghost flex-1"><Save className="w-4 h-4"/>{savedNow ? 'ثبت شد' : 'ثبت همه تغییرات'}</button><button onClick={onClose} className="btn btn-primary flex-1">متوجه شدم، آماده ضبط‌ام</button></footer></section></div>;
 };
-const Step: React.FC<{icon:React.ReactNode;title:string;text:string}>=({icon,title,text})=><div className="flex items-start gap-3 p-3 rounded-2xl border border-line"><span className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0 text-rose" style={{background:'color-mix(in srgb, var(--color-rose) 12%, transparent)'}}>{React.cloneElement(icon as React.ReactElement,{className:'w-4 h-4'})}</span><div><b className="block text-[12px]">{title}</b><p className="text-[11px] text-muted leading-relaxed mt-1">{text}</p></div></div>;

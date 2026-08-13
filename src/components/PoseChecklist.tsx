@@ -25,12 +25,11 @@ function save(v: Record<string, boolean[]>) {
 export const PoseChecklist: React.FC<{ pose: Pose }> = ({ pose }) => {
   const items = useMemo(
     () => [
-      `لوکیشن و پس‌زمینه را برای «${pose.locations[0] || 'لوکیشن'}» آماده کن`,
       'جای پا، زاویه بدن و فاصله بین سوژه‌ها را تنظیم کن',
       'دست‌ها و انگشت‌ها را نرم و طبیعی قرار بده',
       'جهت سر و نگاه را به سوژه بگو',
-      'دیالوگ پیشنهادی را اجرا کن و عکس بگیر',
       'کادر، نور و فوکوس را بررسی کن',
+      'دیالوگ پیشنهادی را اجرا کن و عکس بگیر',
     ],
     [pose]
   );
@@ -67,6 +66,9 @@ export const PoseChecklist: React.FC<{ pose: Pose }> = ({ pose }) => {
   return (
     <Accordion
       id="checklist"
+      persist={false}
+      resetKey={pose.id}
+      defaultOpen={false}
       title="چک‌لیست اجرای سریع"
       icon={<ListChecks className="w-4 h-4 text-gold shrink-0" />}
       hint={`${complete} از ${items.length} مرحله انجام شده · حدود ${minutes} دقیقه`}

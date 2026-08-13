@@ -17,7 +17,6 @@ const CATEGORIES: (CategoryType | 'همه')[] = [
   'داماد',
   'زوج',
   'گروهی',
-  'کودک و خانواده',
 ];
 const TYPES: (PoseType | 'همه')[] = [
   'همه',

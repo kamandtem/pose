@@ -9,10 +9,18 @@ import {
   Database,
   WifiOff,
   Info,
+  Package,
 } from 'lucide-react';
 import { Pose, ViewTab } from '../types/pose';
 import { SectionGuide } from '../components/SectionGuide';
-import { Prefs, buildBackup, estimateUsageMb, restoreBackup, wipeAll } from '../services/storage';
+import {
+  Prefs,
+  buildBackup,
+  buildPosePack,
+  estimateUsageMb,
+  restoreBackup,
+  wipeAll,
+} from '../services/storage';
 
 interface Props {
   poses: Pose[];
@@ -48,6 +56,25 @@ export const SettingsView: React.FC<Props> = ({
     a.remove();
     URL.revokeObjectURL(url);
     onToast('فایل پشتیبان ساخته شد.', true);
+  };
+
+  const exportPosePack = () => {
+    const pack = buildPosePack();
+    if (!pack.poses.length) {
+      onToast('هنوز ژست شخصی برای انتقال نداری.', false);
+      return;
+    }
+    const data = JSON.stringify(pack, null, 2);
+    const blob = new Blob([data], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `pose-director-pose-pack-${new Date().toISOString().slice(0, 10)}.json`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+    onToast(`بسته انتقال ${pack.poses.length} ژست آماده شد.`, true);
   };
 
   const importBackup = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -118,6 +145,14 @@ export const SettingsView: React.FC<Props> = ({
             بازیابی
           </button>
         </div>
+        <button onClick={exportPosePack} className="btn btn-primary w-full">
+          <Package className="w-4 h-4" />
+          آماده‌سازی بسته ژست برای انتقال
+        </button>
+        <p className="text-[10.5px] leading-relaxed text-muted">
+          این گزینه فقط ژست‌هایی را که خودت ساخته‌ای، همراه عکس‌هایشان، در یک فایل جدا جمع می‌کند.
+          برای فرستادن به سازنده برنامه همین فایل را کنار عکس‌های اصلی نگه دار.
+        </p>
         <input
           ref={importRef}
           type="file"

@@ -3,8 +3,7 @@ export type CategoryType =
   | 'عروس'
   | 'داماد'
   | 'زوج'
-  | 'گروهی'
-  | 'کودک و خانواده';
+  | 'گروهی';
 
 export type PoseType =
   | 'ایستاده'
@@ -168,6 +167,8 @@ export interface Pose {
   /** برچسب مرحله اجرا سر صحنه */
   stage: ComfortStage;
 
+  /** کد ثابت برای تطبیق عکس بیرونی با ژست هنگام انتقال به نسخه اصلی */
+  transferCode?: string;
   isCustom?: boolean;
   createdAt?: number;
   note?: string;

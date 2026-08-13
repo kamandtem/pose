@@ -1,5 +1,5 @@
 import React from 'react';
-import { Heart, Users, ChevronLeft, MapPin, Sparkles, Image as ImageIcon } from 'lucide-react';
+import { Heart, Users, ChevronLeft, MapPin, Sparkles, Image as ImageIcon, Trash2, Plus } from 'lucide-react';
 import { Pose } from '../types/pose';
 import { PoseVisual } from './PoseVisual';
 
@@ -8,6 +8,8 @@ interface Props {
   isFavorite: boolean;
   onToggleFavorite: (id: string, e: React.MouseEvent) => void;
   onSelect: (pose: Pose) => void;
+  onDelete: (pose: Pose) => void;
+  onAddToProject: (pose: Pose) => void;
   compact?: boolean;
 }
 
@@ -22,11 +24,16 @@ export const PoseCard: React.FC<Props> = ({
   isFavorite,
   onToggleFavorite,
   onSelect,
+  onDelete,
+  onAddToProject,
   compact,
 }) => (
-  <button
+  <div
     onClick={() => onSelect(pose)}
-    className="card card-hover text-right overflow-hidden flex flex-col w-full"
+    onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') onSelect(pose); }}
+    role="button"
+    tabIndex={0}
+    className="card card-hover text-right overflow-hidden flex flex-col w-full cursor-pointer"
     style={{ borderColor: 'var(--color-line)' }}
   >
     <div className={`relative w-full overflow-hidden ${compact ? 'aspect-[16/10]' : 'aspect-[4/3]'}`}>
@@ -48,7 +55,24 @@ export const PoseCard: React.FC<Props> = ({
           {pose.category}
         </span>
 
-        <span
+        <span className="flex items-center gap-1">
+          <span
+            onClick={(e) => { e.stopPropagation(); onAddToProject(pose); }}
+            className="p-2 rounded-full"
+            style={{ background: 'rgba(8,6,14,.6)' }}
+            role="button"
+            aria-label="افزودن به پروژه"
+          ><Plus className="w-3.5 h-3.5" style={{ color: 'var(--color-teal)' }} /></span>
+          <span
+            onClick={(e) => { e.stopPropagation(); onDelete(pose); }}
+            className="p-2 rounded-full"
+            style={{ background: 'rgba(8,6,14,.6)' }}
+            role="button"
+            aria-label="حذف ژست"
+          >
+            <Trash2 className="w-3.5 h-3.5" style={{ color: 'var(--color-rose)' }} />
+          </span>
+          <span
           onClick={(e) => onToggleFavorite(pose.id, e)}
           className="p-2 rounded-full active:scale-90 transition-transform"
           style={{
@@ -63,6 +87,7 @@ export const PoseCard: React.FC<Props> = ({
             style={{ color: '#fff' }}
             fill={isFavorite ? '#fff' : 'none'}
           />
+          </span>
         </span>
       </div>
 
@@ -127,5 +152,5 @@ export const PoseCard: React.FC<Props> = ({
         </span>
       </div>
     </div>
-  </button>
+  </div>
 );

@@ -10,6 +10,8 @@ interface Props {
   favoriteIds: string[];
   recentIds: string[];
   onSelect: (p: Pose) => void;
+  onDelete: (p: Pose) => void;
+  onAddToProject: (p: Pose) => void;
   onToggleFavorite: (id: string, e: React.MouseEvent) => void;
   onNextPose: () => void;
   onOpenShootMode: () => void;
@@ -25,7 +27,6 @@ const CATEGORY_META: { name: CategoryType; emoji: string; sub: string }[] = [
   { name: 'داماد', emoji: '🤵', sub: 'استایل و پرتره' },
   { name: 'زوج', emoji: '❤️', sub: 'صمیمی و کژوال' },
   { name: 'گروهی', emoji: '👥', sub: 'ساقدوش و خانواده' },
-  { name: 'کودک و خانواده', emoji: '🧒', sub: 'لحظه‌های گرم' },
 ];
 
 export const HomeView: React.FC<Props> = ({
@@ -33,6 +34,8 @@ export const HomeView: React.FC<Props> = ({
   favoriteIds,
   recentIds,
   onSelect,
+  onDelete,
+  onAddToProject,
   onToggleFavorite,
   onNextPose,
   onOpenShootMode,
@@ -173,6 +176,8 @@ export const HomeView: React.FC<Props> = ({
                 isFavorite={favoriteIds.includes(p.id)}
                 onToggleFavorite={onToggleFavorite}
                 onSelect={onSelect}
+                onDelete={onDelete}
+                onAddToProject={onAddToProject}
                 compact
               />
             ))}
@@ -195,6 +200,8 @@ export const HomeView: React.FC<Props> = ({
                 isFavorite
                 onToggleFavorite={onToggleFavorite}
                 onSelect={onSelect}
+                onDelete={onDelete}
+                onAddToProject={onAddToProject}
                 compact
               />
             ))}
@@ -213,6 +220,8 @@ export const HomeView: React.FC<Props> = ({
                 isFavorite={favoriteIds.includes(p.id)}
                 onToggleFavorite={onToggleFavorite}
                 onSelect={onSelect}
+                onDelete={onDelete}
+                onAddToProject={onAddToProject}
                 compact
               />
             ))}

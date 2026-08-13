@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   CategoryType,
   EMPTY_FILTERS,
@@ -9,7 +9,8 @@ import {
 } from './types/pose';
 import {
   Prefs,
-  deleteCustomPose,
+  deletePoseEverywhere,
+  promotePose,
   filterPoses,
   getAllPoses,
   getFavoriteIds,
@@ -21,6 +22,8 @@ import {
   pushRecent,
   savePrefs,
   toggleFavorite,
+  getProjects,
+  saveProject,
 } from './services/storage';
 
 import { Header } from './components/Header';
@@ -62,6 +65,7 @@ export default function App() {
   const [sheetOpen, setSheetOpen] = useState(false);
   const [editingPose, setEditingPose] = useState<Pose | null>(null);
   const [toasts, setToasts] = useState<ToastData[]>([]);
+  const lastBackRef = useRef(0);
 
   const toast = useCallback((text: string, ok = true) => {
     const id = Date.now() + Math.random();
@@ -77,6 +81,26 @@ export default function App() {
     setPrefs(getPrefs());
     setSelected((cur) => (cur ? all.find((p) => p.id === cur.id) || null : null));
   }, []);
+
+  useEffect(() => {
+    const onBack = () => {
+      const now = Date.now();
+      if (tab === 'detail' && selected) { goTab('library'); return; }
+      if (now - lastBackRef.current < 1200) {
+        if (window.confirm('آیا می‌خواهید از برنامه خارج شوید؟')) window.close();
+        lastBackRef.current = 0;
+      } else {
+        lastBackRef.current = now;
+        toast('برای خروج دوباره دکمه برگشت را بزن.');
+      }
+    };
+    window.addEventListener('popstate', onBack);
+    document.addEventListener('backbutton', onBack as EventListener);
+    return () => {
+      window.removeEventListener('popstate', onBack);
+      document.removeEventListener('backbutton', onBack as EventListener);
+    };
+  }, [tab, selected, toast]);
 
   useEffect(() => {
     reload();
@@ -142,11 +166,29 @@ export default function App() {
   };
 
   const removePose = (p: Pose) => {
-    if (!window.confirm(`ژست «${p.title}» حذف شود؟`)) return;
-    deleteCustomPose(p.id);
+    if (!window.confirm(`ژست «${p.title}» حذف شود؟ این ژست دیگر در برنامه نمایش داده نمی‌شود.`)) return;
+    deletePoseEverywhere(p);
     if (selected?.id === p.id) setSelected(null);
     reload();
     toast('ژست حذف شد.');
+  };
+
+  const promote = (p: Pose) => {
+    if (!window.confirm(`ژست «${p.title}» به ژست‌های اصلی منتقل شود؟`)) return;
+    if (promotePose(p.id)) {
+      reload();
+      toast('ژست به ژست‌های اصلی منتقل شد.');
+    } else toast('انتقال ژست انجام نشد.', false);
+  };
+
+  const addToProject = (p: Pose) => {
+    const current = getProjects();
+    if (!current.length) { toast('اول در بخش نشان‌شده‌ها یک پروژه بساز.', false); goTab('favorites'); return; }
+    const choice = window.prompt(`شماره پروژه را انتخاب کن:\n${current.map((x, i) => `${i + 1}. ${x.name} (${x.date})`).join('\n')}`, '1');
+    const project = current[Number(choice) - 1];
+    if (!project) return;
+    saveProject({ ...project, poseIds: Array.from(new Set([...project.poseIds, p.id])) });
+    toast(`«${p.title}» به پروژه اضافه شد.`);
   };
 
   const updatePrefs = (p: Prefs) => {
@@ -194,6 +236,8 @@ export default function App() {
             favoriteIds={favoriteIds}
             recentIds={recentIds}
             onSelect={openPose}
+            onDelete={removePose}
+            onAddToProject={addToProject}
             onToggleFavorite={handleFavorite}
             onNextPose={() => nextPose(false)}
             onOpenShootMode={openShootMode}
@@ -212,6 +256,8 @@ export default function App() {
             favoriteIds={favoriteIds}
             onToggleFavorite={handleFavorite}
             onSelect={openPose}
+            onDelete={removePose}
+            onAddToProject={addToProject}
           />
         )}
 
@@ -223,6 +269,8 @@ export default function App() {
             favoriteIds={favoriteIds}
             onToggleFavorite={handleFavorite}
             onSelect={openPose}
+            onDelete={removePose}
+            onAddToProject={addToProject}
             onOpenShootMode={openShootMode}
             onTab={goTab}
           />
@@ -234,6 +282,7 @@ export default function App() {
             onSelect={openPose}
             onEdit={editPose}
             onDelete={removePose}
+            onPromote={promote}
             onOpenAddPose={openAddPose}
           />
         )}
@@ -267,6 +316,7 @@ export default function App() {
             onNextPose={() => nextPose(false)}
             onOpenShootMode={openShootMode}
             onDataChanged={reload}
+            onDelete={removePose}
             onToast={toast}
             bigScript={prefs.bigScript}
           />

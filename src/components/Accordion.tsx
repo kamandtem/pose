@@ -28,6 +28,10 @@ interface Props {
   hint?: string;
   badge?: React.ReactNode;
   defaultOpen?: boolean;
+  /** اگر false باشد، باز/بسته بودن ذخیره نمی‌شود و هر بار بسته باز می‌شود */
+  persist?: boolean;
+  /** با تغییر این مقدار، بخش به حالت پیش‌فرض (بسته) برمی‌گردد */
+  resetKey?: string;
   children: React.ReactNode;
 }
 
@@ -39,21 +43,29 @@ export const Accordion: React.FC<Props> = ({
   hint,
   badge,
   defaultOpen = false,
+  persist = true,
+  resetKey,
   children,
 }) => {
   const [open, setOpen] = useState<boolean>(() => {
+    if (!persist) return defaultOpen;
     const saved = readState()[id ? id : title];
     return typeof saved === 'boolean' ? saved : defaultOpen;
   });
 
   useEffect(() => {
+    if (!persist) {
+      setOpen(defaultOpen);
+      return;
+    }
     const saved = readState()[id ? id : title];
     setOpen(typeof saved === 'boolean' ? saved : defaultOpen);
-  }, [id, defaultOpen]);
+  }, [id, defaultOpen, persist, resetKey]);
 
   const toggle = () => {
     const next = !open;
     setOpen(next);
+    if (!persist) return;
     const all = readState();
     all[id ? id : title] = next;
     writeState(all);

@@ -10,6 +10,10 @@ const K = {
   prefs: 'pd_prefs_v2',
   seen: 'pd_onboarded_v2',
   session: 'pd_session_v2',
+  promoted: 'pd_promoted_poses_v1',
+  deletedBuiltin: 'pd_deleted_builtin_v1',
+  projects: 'pd_projects_v1',
+  filmNotes: 'pd_film_notes_v1',
 };
 
 function read<T>(key: string, fallback: T): T {
@@ -43,6 +47,46 @@ export const DEFAULT_PREFS: Prefs = {
   bigScript: true,
   keepAwakeHint: true,
 };
+
+export interface ShootProject {
+  id: string;
+  name: string;
+  date: string;
+  poseIds: string[];
+  createdAt: number;
+}
+
+export type FilmNote = {
+  start: string;
+  movement: string;
+  camera: string;
+  direction: string;
+  sound: string;
+  safety: string;
+  transition: string;
+  sequence: string[];
+};
+
+export function getProjects(): ShootProject[] {
+  return read<ShootProject[]>(K.projects, []);
+}
+
+export function saveProject(project: ShootProject): void {
+  const all = getProjects().filter((p) => p.id !== project.id);
+  write(K.projects, [project, ...all]);
+}
+
+export function deleteProject(id: string): void {
+  write(K.projects, getProjects().filter((p) => p.id !== id));
+}
+
+export function getFilmNotes(): Record<string, FilmNote> {
+  return read<Record<string, FilmNote>>(K.filmNotes, {});
+}
+
+export function saveFilmNote(poseId: string, note: FilmNote): void {
+  write(K.filmNotes, { ...getFilmNotes(), [poseId]: note });
+}
 
 export function getPrefs(): Prefs {
   return { ...DEFAULT_PREFS, ...read<Partial<Prefs>>(K.prefs, {}) };
@@ -138,6 +182,48 @@ export function getCustomPoses(): Pose[] {
   return read<Pose[]>(K.custom, []);
 }
 
+export function nextTransferCode(existing: Pose[] = getCustomPoses()): string {
+  const used = existing
+    .map((p) => Number((p.transferCode || '').replace(/^P-/, '')))
+    .filter(Number.isFinite);
+  const next = Math.max(0, ...used) + 1;
+  return `P-${String(next).padStart(3, '0')}`;
+}
+
+export function getPromotedPoses(): Pose[] {
+  return read<Pose[]>(K.promoted, []);
+}
+
+export function getDeletedBuiltinIds(): string[] {
+  return read<string[]>(K.deletedBuiltin, []);
+}
+
+/** تبدیل ژست شخصی به ژست اصلی پایدار، بدون نیاز به کدنویسی */
+export function promotePose(id: string): boolean {
+  const pose = getCustomPoses().find((p) => p.id === id);
+  if (!pose) return false;
+  const promoted = getPromotedPoses().filter((p) => p.id !== id);
+  promoted.unshift({ ...pose, isCustom: false });
+  const remaining = getCustomPoses().filter((p) => p.id !== id);
+  return write(K.promoted, promoted) && write(K.custom, remaining);
+}
+
+/** حذف هر نوع ژست، چه اصلی و چه شخصی */
+export function deletePoseEverywhere(pose: Pose): void {
+  if (pose.isCustom) {
+    deleteCustomPose(pose.id);
+    return;
+  }
+  write(K.promoted, getPromotedPoses().filter((p) => p.id !== pose.id));
+  if (INITIAL_POSES.some((p) => p.id === pose.id)) {
+    write(K.deletedBuiltin, Array.from(new Set([...getDeletedBuiltinIds(), pose.id])));
+  }
+  setFavoriteIds(getFavoriteIds().filter((x) => x !== pose.id));
+  const notes = getNotes();
+  delete notes[pose.id];
+  write(K.notes, notes);
+}
+
 export function saveCustomPose(pose: Pose): { ok: boolean; error?: string } {
   const cur = getCustomPoses();
   const i = cur.findIndex((p) => p.id === pose.id);
@@ -176,7 +262,13 @@ export function getAllPoses(): Pose[] {
     image: photos[p.id] || p.image,
     note: notes[p.id],
   });
-  return [...getCustomPoses().map(merge), ...INITIAL_POSES.map(merge)];
+  const deleted = new Set(getDeletedBuiltinIds());
+  const promotedIds = new Set(getPromotedPoses().map((p) => p.id));
+  return [
+    ...getCustomPoses().map(merge),
+    ...getPromotedPoses().map(merge),
+    ...INITIAL_POSES.filter((p) => !deleted.has(p.id) && !promotedIds.has(p.id)).map(merge),
+  ];
 }
 
 /* --------------------------- فیلتر و جستجو --------------------------- */
@@ -359,6 +451,18 @@ export interface Backup {
   userPhotos: Record<string, string>;
   notes: Record<string, string>;
   prefs: Prefs;
+  promotedPoses?: Pose[];
+  deletedBuiltinIds?: string[];
+}
+
+/** بسته‌ای سبک برای فرستادن ژست‌های تازه به سازنده برنامه */
+export interface PosePack {
+  app: 'pose-director';
+  exportType: 'pose-pack';
+  version: 1;
+  exportedAt: string;
+  poses: Pose[];
+  userPhotos: Record<string, string>;
 }
 
 export function buildBackup(): Backup {
@@ -372,6 +476,31 @@ export function buildBackup(): Backup {
     userPhotos: getUserPhotos(),
     notes: getNotes(),
     prefs: getPrefs(),
+    promotedPoses: getPromotedPoses(),
+    deletedBuiltinIds: getDeletedBuiltinIds(),
+  };
+}
+
+export function buildPosePack(): PosePack {
+  const poses = getCustomPoses();
+  const photos = getUserPhotos();
+  const userPhotos: Record<string, string> = {};
+  poses.forEach((pose) => {
+    const photo = photos[pose.id] || pose.image;
+    if (photo) userPhotos[pose.id] = photo;
+  });
+  return {
+    app: 'pose-director',
+    exportType: 'pose-pack',
+    version: 1,
+    exportedAt: new Date().toISOString(),
+    poses,
+    userPhotos,
+    photoManifest: poses.map((pose) => ({
+      code: pose.transferCode || pose.id,
+      title: pose.title,
+      filename: `${pose.transferCode || pose.id}.jpg`,
+    })),
   };
 }
 
@@ -387,6 +516,8 @@ export function restoreBackup(raw: string): { ok: boolean; message: string } {
     if (data.userPhotos) write(K.photos, data.userPhotos);
     if (data.notes) write(K.notes, data.notes);
     if (data.prefs) savePrefs({ ...DEFAULT_PREFS, ...data.prefs });
+    if (Array.isArray(data.promotedPoses)) write(K.promoted, data.promotedPoses);
+    if (Array.isArray(data.deletedBuiltinIds)) write(K.deletedBuiltin, data.deletedBuiltinIds);
     return {
       ok: true,
       message: `بازیابی انجام شد: ${(data.customPoses || []).length} ژست شخصی برگشت.`,

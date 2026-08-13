@@ -10,6 +10,7 @@ interface Props {
   onSelect: (p: Pose) => void;
   onEdit: (p: Pose) => void;
   onDelete: (p: Pose) => void;
+  onPromote: (p: Pose) => void;
   onOpenAddPose: () => void;
 }
 
@@ -19,6 +20,7 @@ export const MyPosesView: React.FC<Props> = ({
   onSelect,
   onEdit,
   onDelete,
+  onPromote,
   onOpenAddPose,
 }) => {
   const mine = poses.filter((p) => p.isCustom);
@@ -64,6 +66,7 @@ export const MyPosesView: React.FC<Props> = ({
               <div className="flex-1 p-3 min-w-0">
                 <button onClick={() => onSelect(p)} className="text-right w-full">
                   <h3 className="font-bold text-[13px] line-clamp-1">{p.title}</h3>
+                  <span className="text-[10px] text-gold font-mono">کد عکس: {p.transferCode || p.id}</span>
                   <p className="text-[11px] text-muted line-clamp-2 mt-1 leading-relaxed">
                     {p.steps[0]}
                   </p>
@@ -86,6 +89,13 @@ export const MyPosesView: React.FC<Props> = ({
                   >
                     <Pencil className="w-3.5 h-3.5" />
                     ویرایش
+                  </button>
+                  <button
+                    onClick={() => onPromote(p)}
+                    className="flex items-center gap-1 text-[11px] font-bold text-teal"
+                  >
+                    <Sparkles className="w-3.5 h-3.5" />
+                    انتقال به اصلی‌ها
                   </button>
                   <button
                     onClick={() => onDelete(p)}

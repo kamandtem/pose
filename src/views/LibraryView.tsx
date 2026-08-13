@@ -12,6 +12,8 @@ interface Props {
   favoriteIds: string[];
   onToggleFavorite: (id: string, e: React.MouseEvent) => void;
   onSelect: (p: Pose) => void;
+  onDelete: (p: Pose) => void;
+  onAddToProject: (p: Pose) => void;
 }
 
 export const LibraryView: React.FC<Props> = ({
@@ -21,6 +23,8 @@ export const LibraryView: React.FC<Props> = ({
   favoriteIds,
   onToggleFavorite,
   onSelect,
+  onDelete,
+  onAddToProject,
 }) => (
   <div className="space-y-4">
     <SectionGuide section="library" title="کتابخانه ژست‌ها" text="با جستجو، مترادف‌ها، غلط‌های تایپی، لوکیشن، نوع و سختی، سریع به ژست مناسب برس." />
@@ -42,6 +46,8 @@ export const LibraryView: React.FC<Props> = ({
             isFavorite={favoriteIds.includes(p.id)}
             onToggleFavorite={onToggleFavorite}
             onSelect={onSelect}
+            onDelete={onDelete}
+            onAddToProject={onAddToProject}
           />
         ))}
       </div>
