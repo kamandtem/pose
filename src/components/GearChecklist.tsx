@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Check, ChevronDown, ClipboardCheck, RotateCcw } from 'lucide-react';
+import { Check, ChevronDown, ClipboardCheck, RotateCcw, Plus } from 'lucide-react';
 import { LocationType } from '../types/pose';
 import { LOCATIONS } from '../data/locations';
 

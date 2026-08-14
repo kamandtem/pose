@@ -1,5 +1,5 @@
 import React from 'react';
-import { Menu, Plus } from 'lucide-react';
+import { Menu, Plus, Camera } from 'lucide-react';
 
 interface Props {
   onOpenMenu: () => void;
@@ -29,7 +29,6 @@ export const Header: React.FC<Props> = ({ onOpenMenu, onOpenAddPose }) => (
           <Camera className="w-4 h-4" />
           <span className="hidden sm:inline">ژست</span>
         </button>
-
       </div>
     </div>
   </header>
