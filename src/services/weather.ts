@@ -100,20 +100,7 @@ export async function fetchWeather(lat: number, lng: number): Promise<WeatherNow
 /** آخرین آب‌وهوای کش‌شده برای این مختصات (برای حالت آفلاین) */
 export function lastKnownWeather(lat: number, lng: number): WeatherNow | null {
   const cached = getWeatherCache(cacheKey(lat, lng));
-
-  if (!cached) return null;
-
-  return {
-    temp: Number(cached.temp ?? 0),
-    code: Number(cached.code ?? 0),
-    cloudCover: Number(cached.cloudCover ?? 0),
-    windDir: Number(cached.windDir ?? 0),
-    windSpeed: Number(cached.windSpeed ?? 0),
-    precipProb: Number(cached.precipProb ?? 0),
-    isDay: Boolean(cached.isDay),
-    fetchedAt: Number(cached.fetchedAt ?? Date.now()),
-    stale: true,
-  };
+  return cached ? { ...cached, stale: true } : null;
 }
 
 export function tempF(c: number): number {

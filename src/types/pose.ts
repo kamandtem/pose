@@ -175,6 +175,18 @@ export interface Pose {
   suggestedMinutes?: number;
 }
 
+export interface MyLocation {
+  id: string;
+  name: string;
+  contact?: string;
+  address?: string;
+  note?: string;
+  lat?: number;
+  lng?: number;
+  createdAt: number;
+  updatedAt?: number;
+}
+
 export interface FilterState {
   search: string;
   category: CategoryType | 'همه';

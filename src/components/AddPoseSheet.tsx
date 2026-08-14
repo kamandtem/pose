@@ -41,7 +41,7 @@ const DIFF_COLOR: Record<DifficultyLevel, string> = {
 
 /** چیپ انتخابی جذاب (جایگزین دراپ‌داون خام) */
 function ChipSelect<T extends string>({ label, options, value, onChange }: {
-  label: string; options: T[]; value: T; onChange: (v: T) => void;
+  label: string; options: T[]; value: T; onChange: React.Dispatch<React.SetStateAction<T>>;
 }) {
   return (
     <div>

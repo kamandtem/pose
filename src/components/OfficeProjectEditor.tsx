@@ -23,7 +23,7 @@ export const OfficeProjectEditor: React.FC<Props> = ({ project, onSave, onClose 
   const [ceremonyDate, setCeremonyDate] = useState<JalaliDate>(() => {
     if (project.ceremony?.date) {
       const [y, m, d] = project.ceremony.date.split('-').map(Number);
-      return { y, m, d };
+      return { jy: y, jm: m, jd: d };
     }
     return todayJalali();
   });
@@ -35,7 +35,7 @@ export const OfficeProjectEditor: React.FC<Props> = ({ project, onSave, onClose 
   const [formalityDate, setFormalityDate] = useState<JalaliDate>(() => {
     if (project.formality?.recordDate) {
       const [y, m, d] = project.formality.recordDate.split('-').map(Number);
-      return { y, m, d };
+      return { jy: y, jm: m, jd: d };
     }
     return todayJalali();
   });

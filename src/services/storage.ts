@@ -1,4 +1,4 @@
-import { FilterState, MyLocation, Pose } from '../types/pose';
+import { FilterState, MyLocation, Pose, StudioProfile, OfficeProject } from '../types/pose';
 import { INITIAL_POSES } from '../data/poses';
 
 const K = {
@@ -56,6 +56,7 @@ id: string;
 name: string;
 date: string;
 poseIds: string[];
+completedPoseIds?: string[];
 createdAt: number;
 }
 
