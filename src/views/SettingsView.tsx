@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+import React, { useRef, useState } from 'react';
 import {
   Moon,
   Sun,
@@ -16,7 +16,7 @@ import { SectionGuide } from '../components/SectionGuide';
 import {
   Prefs,
   buildBackup,
-  buildPosePack,
+  buildPosePackZip,
   estimateUsageMb,
   restoreBackup,
   wipeAll,
@@ -58,23 +58,30 @@ export const SettingsView: React.FC<Props> = ({
     onToast('فایل پشتیبان ساخته شد.', true);
   };
 
-  const exportPosePack = () => {
-    const pack = buildPosePack();
-    if (!pack.poses.length) {
-      onToast('هنوز ژست شخصی برای انتقال نداری.', false);
-      return;
+  const [packing, setPacking] = useState(false);
+
+  const exportPosePack = async () => {
+    setPacking(true);
+    try {
+      const result = await buildPosePackZip();
+      if (!result) {
+        onToast('هنوز ژست شخصی برای انتقال نداری.', false);
+        return;
+      }
+      const url = URL.createObjectURL(result.blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `pose-director-pose-pack-${new Date().toISOString().slice(0, 10)}.zip`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+      onToast(`بسته انتقال (${result.count} عکس + اطلاعات ژست‌ها) در یک فایل zip آماده شد.`, true);
+    } catch {
+      onToast('ساخت بسته انتقال انجام نشد، دوباره تلاش کن.', false);
+    } finally {
+      setPacking(false);
     }
-    const data = JSON.stringify(pack, null, 2);
-    const blob = new Blob([data], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `pose-director-pose-pack-${new Date().toISOString().slice(0, 10)}.json`;
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-    URL.revokeObjectURL(url);
-    onToast(`بسته انتقال ${pack.poses.length} ژست آماده شد.`, true);
   };
 
   const importBackup = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -145,13 +152,13 @@ export const SettingsView: React.FC<Props> = ({
             بازیابی
           </button>
         </div>
-        <button onClick={exportPosePack} className="btn btn-primary w-full">
+        <button onClick={exportPosePack} disabled={packing} className="btn btn-primary w-full">
           <Package className="w-4 h-4" />
-          آماده‌سازی بسته ژست برای انتقال
+          {packing ? 'در حال آماده‌سازی...' : 'آماده‌سازی بسته ژست برای انتقال'}
         </button>
         <p className="text-[10.5px] leading-relaxed text-muted">
-          این گزینه فقط ژست‌هایی را که خودت ساخته‌ای، همراه عکس‌هایشان، در یک فایل جدا جمع می‌کند.
-          برای فرستادن به سازنده برنامه همین فایل را کنار عکس‌های اصلی نگه دار.
+          این گزینه یک فایل zip می‌سازد که هم عکس‌های ژست‌های شخصی‌ات (هرکدام با نام خودش) و هم اطلاعات متنی آن‌ها را کنار هم دارد.
+          همین یک فایل را برای سازنده برنامه بفرست.
         </p>
         <input
           ref={importRef}

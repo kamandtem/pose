@@ -1,9 +1,25 @@
 import React from 'react';
-import { Shuffle, Play, ArrowLeft, Heart, Clock, Sparkles, PlusCircle } from 'lucide-react';
-import { CategoryType, LocationType, Pose, ViewTab } from '../types/pose';
+import {
+  Shuffle,
+  Play,
+  ArrowLeft,
+  Heart,
+  Clock,
+  Sparkles,
+  PlusCircle,
+  Users2,
+  UserRound,
+  UserSquare2,
+  HeartHandshake,
+  Users,
+  MapPin,
+} from 'lucide-react';
+import type { LucideIcon } from 'lucide-react';
+import { CategoryType, LocationType, MyLocation, Pose, ViewTab } from '../types/pose';
 import { PoseCard } from '../components/PoseCard';
 import { SectionGuide } from '../components/SectionGuide';
 import { LOCATIONS } from '../data/locations';
+import { WeatherCard } from '../components/WeatherCard';
 
 interface Props {
   poses: Pose[];
@@ -19,14 +35,17 @@ interface Props {
   onPickCategory: (c: CategoryType) => void;
   onPickLocation: (l: LocationType) => void;
   onTab: (t: ViewTab) => void;
+  selectedLocation: MyLocation | null;
+  onOpenWeather: () => void;
+  onOpenMyLocations: () => void;
 }
 
-const CATEGORY_META: { name: CategoryType; emoji: string; sub: string }[] = [
-  { name: 'عروس و داماد', emoji: '💑', sub: 'ژست‌های دونفره اصلی' },
-  { name: 'عروس', emoji: '👰', sub: 'پرتره تک‌نفره' },
-  { name: 'داماد', emoji: '🤵', sub: 'استایل و پرتره' },
-  { name: 'زوج', emoji: '❤️', sub: 'صمیمی و کژوال' },
-  { name: 'گروهی', emoji: '👥', sub: 'ساقدوش و خانواده' },
+const CATEGORY_META: { name: CategoryType; icon: LucideIcon; sub: string }[] = [
+  { name: 'عروس و داماد', icon: Users2, sub: 'ژست‌های دونفره اصلی' },
+  { name: 'عروس', icon: UserRound, sub: 'پرتره تک‌نفره' },
+  { name: 'داماد', icon: UserSquare2, sub: 'استایل و پرتره' },
+  { name: 'زوج', icon: HeartHandshake, sub: 'صمیمی و کژوال' },
+  { name: 'گروهی', icon: Users, sub: 'ساقدوش و خانواده' },
 ];
 
 export const HomeView: React.FC<Props> = ({
@@ -43,6 +62,9 @@ export const HomeView: React.FC<Props> = ({
   onPickCategory,
   onPickLocation,
   onTab,
+  selectedLocation,
+  onOpenWeather,
+  onOpenMyLocations,
 }) => {
   const favorites = poses.filter((p) => favoriteIds.includes(p.id));
   const recents = recentIds
@@ -56,6 +78,8 @@ export const HomeView: React.FC<Props> = ({
   return (
     <div className="space-y-7">
       <SectionGuide section="home" title="خانه، نقطه شروع توست" text="اینجا پیشنهاد ژست، دسته‌بندی‌ها، لوکیشن‌ها، نشان‌شده‌ها و آخرین ژست‌های دیده‌شده را یکجا می‌بینی." />
+
+      <WeatherCard selected={selectedLocation} onOpen={onOpenWeather} />
       {/* هیرو */}
       <section className="card relative overflow-hidden p-5 sm:p-7">
         <div
@@ -96,6 +120,10 @@ export const HomeView: React.FC<Props> = ({
               <PlusCircle className="w-4 h-4 text-gold" />
               ژست خودم
             </button>
+            <button onClick={onOpenMyLocations} className="btn btn-ghost">
+              <MapPin className="w-4 h-4 text-gold" />
+              لوکیشن‌های من
+            </button>
           </div>
         </div>
       </section>
@@ -117,7 +145,12 @@ export const HomeView: React.FC<Props> = ({
                 }}
               />
               <div className="relative flex items-center justify-between">
-                <span className="text-xl">{l.emoji}</span>
+                <span
+                  className="w-8 h-8 rounded-lg flex items-center justify-center"
+                  style={{ background: 'rgba(8,6,14,.32)' }}
+                >
+                  <l.icon className="w-4 h-4" style={{ color: '#FFF8EC' }} />
+                </span>
                 <span
                   className="text-[10px] font-bold px-2 py-0.5 rounded-full"
                   style={{ background: 'rgba(8,6,14,.45)', color: '#F4F1EA' }}
@@ -149,7 +182,12 @@ export const HomeView: React.FC<Props> = ({
               className="card card-hover p-3.5 text-right h-24 flex flex-col justify-between"
             >
               <div className="flex items-center justify-between">
-                <span className="text-xl">{c.emoji}</span>
+                <span
+                  className="w-8 h-8 rounded-lg flex items-center justify-center"
+                  style={{ background: 'color-mix(in srgb, var(--color-gold) 14%, transparent)', color: 'var(--color-gold)' }}
+                >
+                  <c.icon className="w-4 h-4" />
+                </span>
                 <span className="pill !text-[10px] !px-2 !py-0.5">{countOf(c.name)}</span>
               </div>
               <div>

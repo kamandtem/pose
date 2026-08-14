@@ -8,6 +8,7 @@ import {
   Lock,
   Unlock,
   Timer,
+  Clapperboard,
 } from 'lucide-react';
 import { Pose } from '../types/pose';
 import { PoseVisual } from './PoseVisual';
@@ -137,7 +138,7 @@ export const ShootMode: React.FC<Props> = ({
 
         <PoseChecklist pose={pose} />
 
-        <button onClick={() => setFilmOpen(true)} className="btn w-full !py-3.5" style={{background:'color-mix(in srgb, var(--color-rose) 14%, transparent)',border:'1px solid color-mix(in srgb, var(--color-rose) 45%, transparent)',color:'var(--color-rose)'}}><span>🎬</span> فیلم‌برداری همین ژست، ساخت پلان</button>
+        <button onClick={() => setFilmOpen(true)} className="btn w-full !py-3.5" style={{background:'color-mix(in srgb, var(--color-rose) 14%, transparent)',border:'1px solid color-mix(in srgb, var(--color-rose) 45%, transparent)',color:'var(--color-rose)'}}><Clapperboard className="w-4 h-4" /> فیلم‌برداری همین ژست، ساخت پلان</button>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div className="card p-3.5">

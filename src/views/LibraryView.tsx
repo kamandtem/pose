@@ -3,6 +3,7 @@ import { EMPTY_FILTERS, FilterState, Pose } from '../types/pose';
 import { Filters } from '../components/Filters';
 import { PoseCard } from '../components/PoseCard';
 import { EmptyState } from '../components/EmptyState';
+import { SearchX } from 'lucide-react';
 import { SectionGuide } from '../components/SectionGuide';
 
 interface Props {
@@ -32,7 +33,7 @@ export const LibraryView: React.FC<Props> = ({
 
     {poses.length === 0 ? (
       <EmptyState
-        emoji="🔍"
+        icon={SearchX}
         title="ژستی با این فیلترها پیدا نشد"
         text="فیلترها را ساده‌تر کنید یا عبارت جستجو را کوتاه‌تر بنویسید."
         action={{ label: 'پاک کردن فیلترها', onClick: () => onFilters({ ...EMPTY_FILTERS }) }}

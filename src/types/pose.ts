@@ -200,6 +200,8 @@ export type ViewTab =
   | 'library'
   | 'favorites'
   | 'locations'
+  | 'mylocations'
+  | 'weather'
   | 'myposes'
   | 'settings'
   | 'about'
@@ -208,3 +210,23 @@ export type ViewTab =
   | 'emergency'
   | 'generator'
   | 'detail';
+
+/**
+ * لوکیشن ذخیره‌شده‌ی شخصی کاربر («لوکیشن‌های من»).
+ * جدا از LocationType که راهنمای لوکیشن‌های آماده‌ی برنامه است.
+ */
+export interface MyLocation {
+  id: string;
+  /** نام لوکیشن */
+  name: string;
+  /** تلفن مالک/مسئول محل */
+  contact?: string;
+  /** آدرس متنی */
+  address?: string;
+  /** مختصات جغرافیایی */
+  lat?: number;
+  lng?: number;
+  note?: string;
+  createdAt: number;
+  updatedAt: number;
+}

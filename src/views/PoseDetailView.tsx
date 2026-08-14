@@ -13,6 +13,8 @@ import {
   Check,
   Users,
   MapPin,
+  Clapperboard,
+  FolderPlus,
 } from 'lucide-react';
 import { Pose } from '../types/pose';
 import { PoseVisual } from '../components/PoseVisual';
@@ -32,6 +34,7 @@ interface Props {
   onOpenShootMode: () => void;
   onDataChanged: () => void;
   onDelete: (pose: Pose) => void;
+  onAddToProject: (pose: Pose) => void;
   onToast: (text: string, ok?: boolean) => void;
   bigScript: boolean;
 }
@@ -45,6 +48,7 @@ export const PoseDetailView: React.FC<Props> = ({
   onOpenShootMode,
   onDataChanged,
   onDelete,
+  onAddToProject,
   onToast,
   bigScript,
 }) => {
@@ -183,6 +187,9 @@ export const PoseDetailView: React.FC<Props> = ({
           <Shuffle className="w-4 h-4 text-gold" />
           بعدی
         </button>
+        <button onClick={() => onAddToProject(pose)} className="btn btn-ghost" aria-label="افزودن به پروژه روز">
+          <FolderPlus className="w-4 h-4 text-gold" />
+        </button>
       </div>
 
       <ScriptPanel lines={pose.photographerScript} big={bigScript} />
@@ -201,7 +208,7 @@ export const PoseDetailView: React.FC<Props> = ({
 
       <PoseChecklist pose={pose} />
 
-      <button onClick={() => setFilmOpen(true)} className="btn w-full !py-3.5" style={{background:'color-mix(in srgb, var(--color-rose) 14%, transparent)',border:'1px solid color-mix(in srgb, var(--color-rose) 45%, transparent)',color:'var(--color-rose)'}}><span>🎬</span> فیلم‌برداری همین ژست، ساخت پلان</button>
+      <button onClick={() => setFilmOpen(true)} className="btn w-full !py-3.5" style={{background:'color-mix(in srgb, var(--color-rose) 14%, transparent)',border:'1px solid color-mix(in srgb, var(--color-rose) 45%, transparent)',color:'var(--color-rose)'}}><Clapperboard className="w-4 h-4" /> فیلم‌برداری همین ژست، ساخت پلان</button>
 
       {/* مراحل اجرا */}
       <Accordion defaultOpen title="مراحل اجرا">

@@ -96,6 +96,9 @@ export const AboutView: React.FC = () => (
       <h3 className="font-extrabold text-[13px]">پشتیبانی و تماس با ما</h3>
       <a href="tel:09164573083" className="btn btn-primary w-full">تماس تلفنی: 09164573083</a>
       <a href="sms:09164573083" className="btn btn-ghost w-full">ارسال پیامک به پشتیبانی</a>
+      <p className="text-[10.5px] text-faint pt-1">
+        طراحی و برنامه‌نویسی: <span className="font-bold text-muted">محمدرضا ارجمند</span>
+      </p>
     </div>
   </div>
 );

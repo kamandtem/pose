@@ -55,7 +55,12 @@ export const LocationsView: React.FC<Props> = ({ poses, onPickLocation }) => {
                 />
                 <div className="absolute bottom-3 right-4 left-4 flex items-end justify-between gap-2">
                   <div>
-                    <span className="text-2xl">{l.emoji}</span>
+                    <span
+                      className="w-9 h-9 rounded-xl flex items-center justify-center"
+                      style={{ background: 'rgba(8,6,14,.4)' }}
+                    >
+                      <l.icon className="w-4.5 h-4.5" style={{ color: '#FFF8EC' }} />
+                    </span>
                     <h3 className="font-extrabold text-[16px] mt-0.5" style={{ color: '#FFF8EC' }}>
                       {l.key}
                     </h3>

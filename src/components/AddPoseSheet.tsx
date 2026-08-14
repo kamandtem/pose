@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { X, Camera, Trash2, Plus, Save, ImagePlus, Loader2, ZoomIn, ZoomOut, Check, Move } from 'lucide-react';
+import { X, Camera, Trash2, Plus, Save, ImagePlus, Loader2, ZoomIn, ZoomOut, Check, Move, RotateCcw } from 'lucide-react';
 import {
   ArtKey,
   CategoryType,
@@ -295,7 +295,15 @@ export const AddPoseSheet: React.FC<Props> = ({ open, onClose, onSaved, editing 
         <PhotoCropper
           source={cropSource}
           onCancel={() => setCropSource(undefined)}
-          onConfirm={(cropped) => { setImage(cropped); setCropSource(undefined); }}
+          onConfirm={(cropped) => {
+            setImage(cropped);
+            setCropSource(undefined);
+            onSaved('عکس تنظیم شد. حالا می‌توانی ذخیره کنی.', true);
+          }}
+          onError={(message) => {
+            setCropSource(undefined);
+            onSaved(message, false);
+          }}
         />
       )}
       <div className="fixed inset-0 z-[80] flex items-end sm:items-center justify-center">
@@ -525,40 +533,135 @@ interface PhotoCropperProps {
   source: string;
   onCancel: () => void;
   onConfirm: (dataUrl: string) => void;
+  onError?: (message: string) => void;
 }
 
-/** ویرایشگر ساده و آفلاین عکس: زوم، جابه‌جایی و تأیید کادر */
-const PhotoCropper: React.FC<PhotoCropperProps> = ({ source, onCancel, onConfirm }) => {
+const MIN_ZOOM = 1;
+const MAX_ZOOM = 4;
+const OUT_W = 1100;
+const OUT_H = 825;
+
+/**
+ * ویرایشگر آفلاین عکس با تعامل مستقیم: عکس را با انگشت/ماوس در کادر جابه‌جا کن
+ * (درگ) و با دو انگشت یا چرخ ماوس زوم کن؛ بدون اهرم یا اسلایدر جداگانه.
+ */
+const PhotoCropper: React.FC<PhotoCropperProps> = ({ source, onCancel, onConfirm, onError }) => {
   const [zoom, setZoom] = useState(1);
-  const [x, setX] = useState(0);
-  const [y, setY] = useState(0);
+  const [pos, setPos] = useState({ x: 0, y: 0 }); // px offset within frame
   const [busy, setBusy] = useState(false);
+  const [naturalSize, setNaturalSize] = useState<{ w: number; h: number } | null>(null);
+  const frameRef = useRef<HTMLDivElement>(null);
+
+  const dragState = useRef<{ active: boolean; startX: number; startY: number; origX: number; origY: number } | null>(null);
+  const pinchState = useRef<{ startDist: number; startZoom: number } | null>(null);
+
+  useEffect(() => {
+    setZoom(1);
+    setPos({ x: 0, y: 0 });
+    setNaturalSize(null);
+    const img = new Image();
+    img.onload = () => setNaturalSize({ w: img.naturalWidth, h: img.naturalHeight });
+    img.onerror = () => onError?.('عکس خوانده نشد. یک عکس دیگر را امتحان کنید.');
+    img.src = source;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [source]);
+
+  // ابعاد نمایش عکس داخل کادر با «cover» + میزان زوم فعلی
+  const frameW = frameRef.current?.clientWidth || 400;
+  const frameH = frameRef.current?.clientHeight || 300;
+  const baseScale = naturalSize ? Math.max(frameW / naturalSize.w, frameH / naturalSize.h) : 1;
+  const dispW = naturalSize ? naturalSize.w * baseScale * zoom : frameW;
+  const dispH = naturalSize ? naturalSize.h * baseScale * zoom : frameH;
+
+  const clamp = (p: { x: number; y: number }, w = dispW, h = dispH) => {
+    const maxX = Math.max(0, (w - frameW) / 2);
+    const maxY = Math.max(0, (h - frameH) / 2);
+    return { x: Math.min(maxX, Math.max(-maxX, p.x)), y: Math.min(maxY, Math.max(-maxY, p.y)) };
+  };
+
+  const dist = (touches: React.TouchList) => {
+    const [a, b] = [touches[0], touches[1]];
+    return Math.hypot(a.clientX - b.clientX, a.clientY - b.clientY);
+  };
+
+  const onPointerDown = (e: React.PointerEvent) => {
+    (e.target as HTMLElement).setPointerCapture(e.pointerId);
+    dragState.current = { active: true, startX: e.clientX, startY: e.clientY, origX: pos.x, origY: pos.y };
+  };
+  const onPointerMove = (e: React.PointerEvent) => {
+    if (!dragState.current?.active) return;
+    const dx = e.clientX - dragState.current.startX;
+    const dy = e.clientY - dragState.current.startY;
+    setPos(clamp({ x: dragState.current.origX + dx, y: dragState.current.origY + dy }));
+  };
+  const endDrag = () => { if (dragState.current) dragState.current.active = false; };
+
+  const onTouchStart = (e: React.TouchEvent) => {
+    if (e.touches.length === 2) pinchState.current = { startDist: dist(e.touches), startZoom: zoom };
+  };
+  const onTouchMove = (e: React.TouchEvent) => {
+    if (e.touches.length === 2 && pinchState.current) {
+      e.preventDefault();
+      const ratio = dist(e.touches) / pinchState.current.startDist;
+      const next = Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, pinchState.current.startZoom * ratio));
+      setZoom(next);
+    }
+  };
+
+  const onWheel = (e: React.WheelEvent) => {
+    e.preventDefault();
+    const delta = e.deltaY > 0 ? -0.12 : 0.12;
+    setZoom((z) => Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, +(z + delta).toFixed(2))));
+  };
+
+  const nudgeZoom = (delta: number) =>
+    setZoom((z) => Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, +(z + delta).toFixed(2))));
+
+  useEffect(() => {
+    // با تغییر زوم، جابه‌جایی فعلی را در محدوده جدید نگه می‌داریم
+    setPos((p) => clamp(p));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [zoom]);
+
+  const reset = () => { setZoom(1); setPos({ x: 0, y: 0 }); };
 
   const confirm = () => {
+    if (!naturalSize) return;
     setBusy(true);
-    const img = new Image();
-    img.onload = () => {
-      const outW = 1100;
-      const outH = 825;
+    try {
       const canvas = document.createElement('canvas');
-      canvas.width = outW;
-      canvas.height = outH;
+      canvas.width = OUT_W;
+      canvas.height = OUT_H;
       const ctx = canvas.getContext('2d');
-      if (!ctx) return;
-      const base = Math.max(outW / img.width, outH / img.height);
-      const scale = base * zoom;
-      const w = img.width * scale;
-      const h = img.height * scale;
-      const dx = (outW - w) / 2 + x * outW * 0.35;
-      const dy = (outH - h) / 2 + y * outH * 0.35;
-      ctx.fillStyle = '#120f1c';
-      ctx.fillRect(0, 0, outW, outH);
-      ctx.drawImage(img, dx, dy, w, h);
-      onConfirm(canvas.toDataURL('image/jpeg', 0.78));
+      if (!ctx) throw new Error('no-ctx');
+      const img = new Image();
+      img.onload = () => {
+        try {
+          // نسبت نمایش کادر پیش‌نمایش به کادر خروجی نهایی
+          const outScale = OUT_W / frameW;
+          const drawW = dispW * outScale;
+          const drawH = dispH * outScale;
+          const dx = (OUT_W - drawW) / 2 + pos.x * outScale;
+          const dy = (OUT_H - drawH) / 2 + pos.y * outScale;
+          ctx.fillStyle = '#120f1c';
+          ctx.fillRect(0, 0, OUT_W, OUT_H);
+          ctx.drawImage(img, dx, dy, drawW, drawH);
+          onConfirm(canvas.toDataURL('image/jpeg', 0.82));
+        } catch {
+          onError?.('عکس ذخیره نشد، دوباره تلاش کن.');
+        } finally {
+          setBusy(false);
+        }
+      };
+      img.onerror = () => {
+        setBusy(false);
+        onError?.('عکس ذخیره نشد، دوباره تلاش کن.');
+      };
+      img.src = source;
+    } catch {
       setBusy(false);
-    };
-    img.onerror = () => setBusy(false);
-    img.src = source;
+      onError?.('عکس ذخیره نشد، دوباره تلاش کن.');
+    }
   };
 
   return (
@@ -567,18 +670,74 @@ const PhotoCropper: React.FC<PhotoCropperProps> = ({ source, onCancel, onConfirm
       <section className="relative w-full max-w-lg card overflow-hidden" role="dialog" aria-label="تنظیم کادر عکس">
         <header className="flex items-center gap-3 px-4 py-3 border-b border-line">
           <Move className="w-5 h-5 text-gold" />
-          <div className="flex-1"><h2 className="font-extrabold text-[15px]">تنظیم عکس ژست</h2><p className="text-[10px] text-muted mt-1">عکس را زوم و در کادر جابه‌جا کن، بعد تأیید بزن.</p></div>
+          <div className="flex-1">
+            <h2 className="font-extrabold text-[15px]">تنظیم عکس ژست</h2>
+            <p className="text-[10px] text-muted mt-1">عکس را بکش تا جابه‌جا شود، با چرخ ماوس یا دو انگشت زوم کن.</p>
+          </div>
           <button onClick={onCancel} className="p-2 text-muted" aria-label="لغو"><X className="w-5 h-5" /></button>
         </header>
-        <div className="p-4 space-y-4">
-          <div className="relative aspect-[4/3] rounded-2xl overflow-hidden border border-gold bg-[#120f1c]">
-            <img src={source} alt="پیش‌نمایش عکس" className="absolute inset-0 w-full h-full object-contain" style={{ transform: `translate(${x * 35}%, ${y * 35}%) scale(${zoom})` }} />
+        <div className="p-4 space-y-3.5">
+          <div
+            ref={frameRef}
+            className="relative aspect-[4/3] rounded-2xl overflow-hidden border border-gold bg-[#120f1c] touch-none cursor-move"
+            onPointerDown={onPointerDown}
+            onPointerMove={onPointerMove}
+            onPointerUp={endDrag}
+            onPointerCancel={endDrag}
+            onPointerLeave={endDrag}
+            onTouchStart={onTouchStart}
+            onTouchMove={onTouchMove}
+            onWheel={onWheel}
+          >
+            {naturalSize ? (
+              <img
+                src={source}
+                alt="پیش‌نمایش عکس"
+                draggable={false}
+                className="absolute top-1/2 left-1/2 select-none pointer-events-none"
+                style={{
+                  width: dispW,
+                  height: dispH,
+                  transform: `translate(-50%, -50%) translate(${pos.x}px, ${pos.y}px)`,
+                }}
+              />
+            ) : (
+              <div className="absolute inset-0 flex items-center justify-center">
+                <Loader2 className="w-6 h-6 animate-spin text-gold" />
+              </div>
+            )}
             <div className="absolute inset-0 pointer-events-none" style={{ boxShadow: 'inset 0 0 0 2px color-mix(in srgb, var(--color-gold) 80%, transparent)' }} />
-            <span className="absolute top-2 right-2 pill !text-[9px]">کادر نهایی ۴:۳</span>
+            <span className="absolute top-2 right-2 pill !text-[9px] pointer-events-none">کادر نهایی ۴:۳</span>
           </div>
-          <div className="flex items-center gap-3"><ZoomOut className="w-4 h-4 text-muted" /><input aria-label="میزان زوم" type="range" min="1" max="3" step="0.05" value={zoom} onChange={(e)=>setZoom(Number(e.target.value))} className="flex-1 accent-gold"/><ZoomIn className="w-4 h-4 text-gold" /></div>
-          <div className="grid grid-cols-2 gap-3"><label className="text-[10px] text-muted">جابه‌جایی افقی<input type="range" min="-1" max="1" step="0.01" value={x} onChange={(e)=>setX(Number(e.target.value))} className="w-full accent-gold mt-2"/></label><label className="text-[10px] text-muted">جابه‌جایی عمودی<input type="range" min="-1" max="1" step="0.01" value={y} onChange={(e)=>setY(Number(e.target.value))} className="w-full accent-gold mt-2"/></label></div>
-          <div className="flex gap-2"><button onClick={()=>{setZoom(1);setX(0);setY(0);}} className="btn btn-ghost flex-1 !text-[11px]">بازنشانی کادر</button><button onClick={confirm} disabled={busy} className="btn btn-primary flex-1 !text-[11px]">{busy ? <Loader2 className="w-4 h-4 animate-spin"/> : <Check className="w-4 h-4"/>}تأیید عکس</button></div>
+
+          <div className="flex items-center justify-center gap-2">
+            <button
+              type="button"
+              onClick={() => nudgeZoom(-0.25)}
+              className="btn btn-ghost !p-2.5 !rounded-full"
+              aria-label="کوچک‌نمایی"
+            >
+              <ZoomOut className="w-4 h-4" />
+            </button>
+            <span className="pill !text-[10px] !py-1.5 min-w-[52px] justify-center">{Math.round(zoom * 100)}٪</span>
+            <button
+              type="button"
+              onClick={() => nudgeZoom(0.25)}
+              className="btn btn-ghost !p-2.5 !rounded-full"
+              aria-label="بزرگ‌نمایی"
+            >
+              <ZoomIn className="w-4 h-4 text-gold" />
+            </button>
+            <button type="button" onClick={reset} className="btn btn-ghost !py-2 !px-3 !text-[11px] mr-1">
+              <RotateCcw className="w-3.5 h-3.5" />
+              بازنشانی
+            </button>
+          </div>
+
+          <button onClick={confirm} disabled={busy || !naturalSize} className="btn btn-primary w-full !text-[12px]">
+            {busy ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
+            تأیید عکس
+          </button>
         </div>
       </section>
     </div>

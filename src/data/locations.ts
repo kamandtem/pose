@@ -1,8 +1,10 @@
 import { LocationType } from '../types/pose';
+import { Landmark, Sun, TreePine, Waves } from 'lucide-react';
+import type { LucideIcon } from 'lucide-react';
 
 export interface LocationInfo {
   key: LocationType;
-  emoji: string;
+  icon: LucideIcon;
   subtitle: string;
   /** گرادیان اختصاصی برای تصویرسازی و کارت‌ها */
   colors: [string, string, string];
@@ -17,7 +19,7 @@ export interface LocationInfo {
 export const LOCATIONS: LocationInfo[] = [
   {
     key: 'جنوب',
-    emoji: '🌊',
+    icon: Waves,
     subtitle: 'ساحل، نخل، آب و آفتاب داغ',
     colors: ['#0E4C5C', '#1B8C93', '#F2C56B'],
     bestTime: 'یک ساعت پیش از غروب (Golden Hour) یا نیم‌ساعت پس از غروب برای آسمان بنفش',
@@ -37,7 +39,7 @@ export const LOCATIONS: LocationInfo[] = [
   },
   {
     key: 'شمال',
-    emoji: '🌿',
+    icon: TreePine,
     subtitle: 'جنگل مه‌گرفته، سبزی و رطوبت',
     colors: ['#12352B', '#2F7F5B', '#D9E7A8'],
     bestTime: 'صبح زود همراه با مه، یا ساعات ابری که نور کاملاً یکدست است',
@@ -57,7 +59,7 @@ export const LOCATIONS: LocationInfo[] = [
   },
   {
     key: 'کویر',
-    emoji: '🏜️',
+    icon: Sun,
     subtitle: 'شن، خطوط تمیز و آسمان بی‌انتها',
     colors: ['#4A2E17', '#C98A45', '#F5E0B7'],
     bestTime: 'نیم‌ساعت اول و آخر روز؛ ظهر کویر نور را کاملاً بی‌روح می‌کند',
@@ -77,7 +79,7 @@ export const LOCATIONS: LocationInfo[] = [
   },
   {
     key: 'باغ عمارت',
-    emoji: '🏛️',
+    icon: Landmark,
     subtitle: 'معماری، ستون، پله و باغ کلاسیک',
     colors: ['#26202F', '#7C6A4E', '#EBD6A8'],
     bestTime: 'اواخر بعدازظهر برای نور مایل روی نما، یا شب با نورپردازی خود عمارت',

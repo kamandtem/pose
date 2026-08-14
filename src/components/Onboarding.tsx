@@ -1,25 +1,26 @@
 import React, { useState } from 'react';
-import { ChevronLeft, Check } from 'lucide-react';
+import { ChevronLeft, Check, Clapperboard, Mic, Map, PlusCircle } from 'lucide-react';
+import type { LucideIcon } from 'lucide-react';
 import { LogoMark } from './Logo';
 
-const SLIDES = [
+const SLIDES: { icon: LucideIcon; title: string; text: string }[] = [
   {
-    emoji: '🎬',
+    icon: Clapperboard,
     title: 'کارگردان ژست',
     text: 'وسط پروژه عکاسی، دیگر لازم نیست دنبال ایده بگردید. ۱۲۰ ژست آماده با مراحل اجرا، فرم بدن و دیالوگ دقیق برای هدایت سوژه.',
   },
   {
-    emoji: '🎤',
+    icon: Mic,
     title: 'چی به سوژه بگم؟',
     text: 'برای هر ژست، جمله‌های آماده‌ای داریم که مستقیم به عروس و داماد می‌گویید. حتی می‌توانید صوتش را پخش کنید.',
   },
   {
-    emoji: '🗺️',
+    icon: Map,
     title: 'بر اساس لوکیشن',
     text: 'جنوب، شمال، کویر و باغ عمارت. برای هر لوکیشن راهنمای نور، بهترین ساعت، استایل لباس و تجهیزات پیشنهادی آماده است.',
   },
   {
-    emoji: '➕',
+    icon: PlusCircle,
     title: 'ژست‌های خودتان',
     text: 'هر ژستی که جایی دیدید و پسندیدید را با عکس و مراحل اجرا ذخیره کنید. با تگ‌گذاری، هر وقت خواستید سریع پیدایش می‌کنید.',
   },
@@ -42,13 +43,14 @@ export const Onboarding: React.FC<{ onDone: () => void }> = ({ onDone }) => {
       <div className="flex-1 flex flex-col items-center justify-center px-7 text-center">
         <div
           key={i}
-          className="a-pop w-24 h-24 rounded-3xl flex items-center justify-center text-5xl mb-7"
+          className="a-pop w-24 h-24 rounded-3xl flex items-center justify-center mb-7"
           style={{
             background: 'color-mix(in srgb, var(--color-gold) 14%, transparent)',
             border: '1px solid color-mix(in srgb, var(--color-gold) 35%, transparent)',
+            color: 'var(--color-gold)',
           }}
         >
-          {s.emoji}
+          <s.icon className="w-11 h-11" />
         </div>
 
         <h2 key={`t${i}`} className="a-fade-up text-2xl font-extrabold gold-text">

@@ -3,6 +3,8 @@ import {
   Home,
   LayoutGrid,
   MapPin,
+  MapPinned,
+  CloudSun,
   Heart,
   FolderHeart,
   PlusCircle,
@@ -75,6 +77,8 @@ export const SideMenu: React.FC<Props> = ({
     { tab: 'home', icon: Home, label: 'خانه' },
     { tab: 'library', icon: LayoutGrid, label: 'کتابخانه ژست‌ها', badge: counts.total },
     { tab: 'locations', icon: MapPin, label: 'لوکیشن‌ها' },
+    { tab: 'mylocations', icon: MapPinned, label: 'لوکیشن‌های من' },
+    { tab: 'weather', icon: CloudSun, label: 'آب‌وهوا و نور' },
     { tab: 'favorites', icon: Heart, label: 'علاقه‌مندی‌ها', badge: counts.favorites },
     { tab: 'myposes', icon: FolderHeart, label: 'ژست‌های من', badge: counts.mine },
     {

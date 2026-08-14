@@ -1,5 +1,5 @@
 import React from 'react';
-import { PlusCircle, Sparkles, Pencil, Trash2 } from 'lucide-react';
+import { PlusCircle, Sparkles, Pencil, Trash2, ImagePlus } from 'lucide-react';
 import { Pose } from '../types/pose';
 import { PoseVisual } from '../components/PoseVisual';
 import { EmptyState } from '../components/EmptyState';
@@ -46,7 +46,7 @@ export const MyPosesView: React.FC<Props> = ({
 
       {mine.length === 0 ? (
         <EmptyState
-          emoji="📸"
+          icon={ImagePlus}
           title="اولین ژست خودت را اضافه کن"
           text="یک عکس از گالری یا دوربین انتخاب کن، مراحل اجرا و جمله‌هایی که به سوژه می‌گویی را بنویس. همه‌چیز روی همین گوشی ذخیره می‌شود."
           action={{ label: 'افزودن ژست جدید', onClick: onOpenAddPose }}
