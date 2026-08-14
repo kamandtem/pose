@@ -16,7 +16,7 @@ interface Props {
   contain?: boolean;
 }
 
-export const PoseVisual: React.FC<Props> = ({ pose, className = '', contain = false }) => {
+const PoseVisualBase: React.FC<Props> = ({ pose, className = '', contain = false }) => {
   const [failed, setFailed] = useState(false);
 
   useEffect(() => {
@@ -64,3 +64,5 @@ export const PoseVisual: React.FC<Props> = ({ pose, className = '', contain = fa
     </div>
   );
 };
+
+export const PoseVisual = React.memo(PoseVisualBase);

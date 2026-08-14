@@ -195,38 +195,83 @@ export const EMPTY_FILTERS: FilterState = {
   customOnly: false,
 };
 
-export type ViewTab =
-  | 'home'
-  | 'library'
-  | 'favorites'
-  | 'locations'
-  | 'mylocations'
-  | 'weather'
-  | 'myposes'
-  | 'settings'
-  | 'about'
-  | 'support'
-  | 'principles'
-  | 'emergency'
-  | 'generator'
-  | 'detail';
 
-/**
- * لوکیشن ذخیره‌شده‌ی شخصی کاربر («لوکیشن‌های من»).
- * جدا از LocationType که راهنمای لوکیشن‌های آماده‌ی برنامه است.
- */
-export interface MyLocation {
+/* ==================== بخش دفتر کار ==================== */
+
+export interface StudioProfile {
   id: string;
-  /** نام لوکیشن */
-  name: string;
-  /** تلفن مالک/مسئول محل */
-  contact?: string;
-  /** آدرس متنی */
+  name: string;           /** نام استودیو/اتلیه */
+  phone: string;          /** شماره تماس */
+  craftCode: string;      /** شماره صنفی */
   address?: string;
-  /** مختصات جغرافیایی */
-  lat?: number;
-  lng?: number;
-  note?: string;
+  logo?: string;          /** dataURL of logo */
+  bankName?: string;
+  accountNumber?: string;
   createdAt: number;
   updatedAt: number;
 }
+
+export type CameraType = 'هلی‌شات' | 'FPV' | 'کرین' | 'دستی' | 'عکاسی' | 'لرزشگیر';
+export type ServiceType = 'عکاسی مراسم' | 'میکس' | 'آلبوم' | 'عکس سر مجلسی' | 'پخش کلیپ' | 'TV اسلاید';
+export type LocationTypeFormatted = 'محلی' | 'شمال' | 'جنوب' | 'باغ عمارت';
+export type ThemeType = 'شاد و اکتیو' | 'ارامش' | 'عاشقانه احساسی';
+
+export interface Ceremony {
+  id: string;
+  date: string;           /** ISO date */
+  cameras: Partial<Record<CameraType, number>>; /** camera -> count */
+  services: Partial<Record<ServiceType, { checked: boolean; notes?: string }>>;
+  createdAt: number;
+  updatedAt: number;
+}
+
+export interface Formality {
+  id: string;
+  location?: string;      /** نام لوکیشن ضبط */
+  recordDate: string;     /** ISO date */
+  cameras: Partial<Record<Exclude<CameraType, 'کرین'>, number>>;
+  clipType?: LocationTypeFormatted;
+  theme?: ThemeType;
+  createdAt: number;
+  updatedAt: number;
+}
+
+export interface ProjectInvoice {
+  id: string;
+  items: Array<{ name: string; count: number; price: number }>;  /** price per unit in تومان */
+  total: number;
+  createdAt: number;
+  updatedAt: number;
+}
+
+export interface OfficeProject {
+  id: string;
+  name: string;           /** نام پروژه */
+  ceremony?: Ceremony;    /** اختیاری */
+  formality?: Formality;  /** اختیاری */
+  ceremonyInvoice?: ProjectInvoice;
+  formalityInvoice?: ProjectInvoice;
+  createdAt: number;
+  updatedAt: number;
+}
+
+/* درآمد پروژه = مجموع فاکتور‌های موجود */
+export interface ProjectRevenue {
+  ceremonyTotal: number;
+  formalityTotal: number;
+  totalRevenue: number;
+}
+
+export type ViewTab =
+  | 'home'
+  | 'library'
+  | 'locations'
+  | 'mylocations'
+  | 'weather'
+  | 'favorites'
+  | 'myposes'
+  | 'office'
+  | 'office-project-detail'
+  | 'principles'
+  | 'settings'
+  | 'detail';

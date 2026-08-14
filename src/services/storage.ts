@@ -647,3 +647,41 @@ bytes += (localStorage.getItem(k) || '').length * 2;
 });
 return Math.round((bytes / (1024 * 1024)) * 100) / 100;
 }
+
+
+/* ==================== بخش دفتر کار ==================== */
+
+export function getStudioProfile(): StudioProfile | null {
+  const K = { studioProfile: 'pd_studio_profile_v1' };
+  return read<StudioProfile | null>(K.studioProfile, null);
+}
+
+export function saveStudioProfile(p: StudioProfile): boolean {
+  const K = { studioProfile: 'pd_studio_profile_v1' };
+  return write(K.studioProfile, p);
+}
+
+export function getOfficeProjects(): OfficeProject[] {
+  const K = { officeProjects: 'pd_office_projects_v1' };
+  return read<OfficeProject[]>(K.officeProjects, []);
+}
+
+export function saveOfficeProject(proj: OfficeProject): { ok: boolean; error?: string } {
+  const K = { officeProjects: 'pd_office_projects_v1' };
+  const all = getOfficeProjects();
+  const idx = all.findIndex((p) => p.id === proj.id);
+  const next = [...all];
+  if (idx >= 0) next[idx] = proj;
+  else next.unshift(proj);
+  const ok = write(K.officeProjects, next);
+  return ok ? { ok: true } : { ok: false, error: 'حافظه پر شد' };
+}
+
+export function deleteOfficeProject(id: string): void {
+  const K = { officeProjects: 'pd_office_projects_v1' };
+  write(K.officeProjects, getOfficeProjects().filter((p) => p.id !== id));
+}
+
+export function getOfficeProject(id: string): OfficeProject | null {
+  return getOfficeProjects().find((p) => p.id === id) || null;
+}

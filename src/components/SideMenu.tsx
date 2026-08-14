@@ -1,6 +1,7 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef } from 'react';
 import {
   Home,
+  Briefcase,
   LayoutGrid,
   MapPin,
   MapPinned,
@@ -8,12 +9,9 @@ import {
   Heart,
   FolderHeart,
   PlusCircle,
-  Play,
-  Info,
   BookOpen,
-  AlertTriangle,
-  WandSparkles,
   Settings,
+  UserRound,
   Moon,
   Sun,
   X,
@@ -28,7 +26,7 @@ interface Props {
   activeTab: ViewTab;
   onNavigate: (tab: ViewTab) => void;
   onOpenAddPose: () => void;
-  onOpenShootMode: () => void;
+  onOpenStudioProfile: () => void;
   theme: 'dark' | 'light';
   onToggleTheme: () => void;
   counts: { total: number; favorites: number; mine: number };
@@ -46,7 +44,7 @@ export const SideMenu: React.FC<Props> = ({
   activeTab,
   onNavigate,
   onOpenAddPose,
-  onOpenShootMode,
+  onOpenStudioProfile,
   theme,
   onToggleTheme,
   counts,
@@ -59,6 +57,7 @@ export const SideMenu: React.FC<Props> = ({
     return () => window.removeEventListener('keydown', onKey);
   }, [open, onClose]);
 
+  const touchStart = useRef<number | null>(null);
   if (!open) return null;
 
   const go = (tab: ViewTab) => {
@@ -90,19 +89,9 @@ export const SideMenu: React.FC<Props> = ({
         onClose();
       },
     },
-    {
-      icon: Play,
-      label: 'حالت عکاسی',
-      accent: true,
-      action: () => {
-        onOpenShootMode();
-        onClose();
-      },
-    },
     { tab: 'principles', icon: BookOpen, label: 'اصول ژست‌دهی' },
-    { tab: 'generator', icon: WandSparkles, label: 'موتور ساخت ژست' },
-    { tab: 'emergency', icon: AlertTriangle, label: 'حالت اضطراری لوکیشن' },
-    { tab: 'about', icon: Info, label: 'معرفی برنامه' },
+    { icon: UserRound, label: 'پروفایل', action: () => { onOpenStudioProfile(); onClose(); } },
+    { tab: 'office', icon: Briefcase, label: 'دفتر آتلیه / استودیو' },
     { tab: 'settings', icon: Settings, label: 'تنظیمات' },
   ];
 
@@ -120,14 +109,21 @@ export const SideMenu: React.FC<Props> = ({
       <aside
         className="fixed z-[71] a-slide-right card overflow-y-auto no-scrollbar shadow-2xl"
         style={{
-          top: 'calc(74px + env(safe-area-inset-top, 0px))',
-          bottom: 'calc(92px + env(safe-area-inset-bottom, 0px))',
+          top: 'calc(10px + env(safe-area-inset-top, 0px))',
+          bottom: 'calc(10px + env(safe-area-inset-bottom, 0px))',
           right: '12px',
           width: 'min(78vw, 296px)',
           borderRadius: '22px',
         }}
         role="dialog"
         aria-label="منوی برنامه"
+        onTouchStart={(e) => { touchStart.current = e.touches[0]?.clientX ?? null; }}
+        onTouchEnd={(e) => {
+          const start = touchStart.current;
+          const end = e.changedTouches[0]?.clientX;
+          touchStart.current = null;
+          if (start !== null && end !== undefined && end - start > 70) onClose();
+        }}
       >
         <div className="sticky top-0 z-10 flex items-center justify-between gap-2 px-4 py-3 border-b border-line bg-surface/80 backdrop-blur-md">
           <LogoLockup size={30} subtitle={false} />

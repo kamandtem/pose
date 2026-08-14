@@ -1,5 +1,5 @@
 import React from 'react';
-import { MapPin, Plus, Phone, Pencil, Trash2, CloudSun, Navigation, Check } from 'lucide-react';
+import { MapPin, Plus, Phone, Pencil, Trash2, CloudSun, Navigation, Check, LocateFixed } from 'lucide-react';
 import { MyLocation } from '../types/pose';
 import { SectionGuide } from '../components/SectionGuide';
 import { EmptyState } from '../components/EmptyState';
@@ -11,6 +11,7 @@ interface Props {
   onEdit: (l: MyLocation) => void;
   onDelete: (l: MyLocation) => void;
   onUseForWeather: (l: MyLocation) => void;
+  onUseCurrent: () => void;
 }
 
 /** «لوکیشن‌های من»: لوکیشن‌های ذخیره‌شده‌ی شخصی عکاس. */
@@ -21,6 +22,7 @@ export const MyLocationsView: React.FC<Props> = ({
   onEdit,
   onDelete,
   onUseForWeather,
+  onUseCurrent,
 }) => {
   return (
     <div className="space-y-4">
@@ -35,10 +37,16 @@ export const MyLocationsView: React.FC<Props> = ({
           <h2 className="font-extrabold text-[15px]">لوکیشن‌های من</h2>
           <p className="text-[11px] text-muted mt-1">{locations.length.toLocaleString('fa-IR')} لوکیشن ذخیره‌شده</p>
         </div>
-        <button onClick={onAdd} className="btn btn-primary shrink-0">
-          <Plus className="w-4 h-4" />
-          لوکیشن جدید
-        </button>
+        <div className="flex items-center gap-2 shrink-0">
+          <button onClick={onUseCurrent} className="btn btn-ghost !px-3" title="نمایش آب‌وهوا برای موقعیت فعلی">
+            <LocateFixed className="w-4 h-4 text-gold" />
+            <span className="hidden sm:inline">موقعیت فعلی</span>
+          </button>
+          <button onClick={onAdd} className="btn btn-primary !px-3">
+            <Plus className="w-4 h-4" />
+            <span className="hidden sm:inline">لوکیشن جدید</span>
+          </button>
+        </div>
       </div>
 
       {locations.length === 0 ? (

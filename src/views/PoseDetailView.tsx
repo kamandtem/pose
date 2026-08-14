@@ -2,7 +2,6 @@ import React, { useEffect, useRef, useState } from 'react';
 import {
   ChevronRight,
   Heart,
-  Play,
   Shuffle,
   AlertTriangle,
   Repeat,
@@ -15,6 +14,8 @@ import {
   MapPin,
   Clapperboard,
   FolderPlus,
+  RectangleHorizontal,
+  RectangleVertical,
 } from 'lucide-react';
 import { Pose } from '../types/pose';
 import { PoseVisual } from '../components/PoseVisual';
@@ -31,7 +32,6 @@ interface Props {
   isFavorite: boolean;
   onToggleFavorite: (id: string, e: React.MouseEvent) => void;
   onNextPose: () => void;
-  onOpenShootMode: () => void;
   onDataChanged: () => void;
   onDelete: (pose: Pose) => void;
   onAddToProject: (pose: Pose) => void;
@@ -45,7 +45,6 @@ export const PoseDetailView: React.FC<Props> = ({
   isFavorite,
   onToggleFavorite,
   onNextPose,
-  onOpenShootMode,
   onDataChanged,
   onDelete,
   onAddToProject,
@@ -56,6 +55,15 @@ export const PoseDetailView: React.FC<Props> = ({
   const [noteText, setNoteText] = useState(pose.note || '');
   const [savedNote, setSavedNote] = useState(false);
   const [filmOpen, setFilmOpen] = useState(false);
+  const [ratio, setRatio] = useState<'4/3' | '3/4'>(
+    () => ((typeof localStorage !== 'undefined' && localStorage.getItem('pd_detail_ratio')) === '3/4' ? '3/4' : '4/3')
+  );
+  const toggleRatio = () =>
+    setRatio((r) => {
+      const next = r === '4/3' ? '3/4' : '4/3';
+      try { localStorage.setItem('pd_detail_ratio', next); } catch { /* حافظه پر */ }
+      return next;
+    });
 
   useEffect(() => {
     setNoteText(pose.note || '');
@@ -96,7 +104,13 @@ export const PoseDetailView: React.FC<Props> = ({
     <div className="space-y-4">
       {/* تصویر و هدر */}
       <div className="card overflow-hidden">
-        <div className="relative aspect-[4/3]">
+        <div
+          className={
+            ratio === '3/4'
+              ? 'relative mx-auto w-[min(80%,320px)] aspect-[3/4]'
+              : 'relative w-full aspect-[4/3]'
+          }
+        >
           <PoseVisual pose={pose} />
           <div
             className="absolute inset-0"
@@ -159,6 +173,16 @@ export const PoseDetailView: React.FC<Props> = ({
           </div>
 
           <div className="flex items-center gap-1.5">
+            <button
+              onClick={toggleRatio}
+              className="btn btn-ghost !py-2 !px-2.5"
+              aria-label="تغییر نسبت تصویر"
+              title={ratio === '4/3' ? 'نمای عمودی (۳:۴)' : 'نمای افقی (۴:۳)'}
+            >
+              {ratio === '4/3'
+                ? <RectangleVertical className="w-3.5 h-3.5 text-gold" />
+                : <RectangleHorizontal className="w-3.5 h-3.5 text-gold" />}
+            </button>
             <button onClick={() => fileRef.current?.click()} className="btn btn-ghost !py-2 !px-3 !text-[11px]">
               <ImagePlus className="w-3.5 h-3.5 text-gold" />
               {pose.image ? 'تغییر عکس' : 'عکس مرجع'}
@@ -179,9 +203,8 @@ export const PoseDetailView: React.FC<Props> = ({
 
       {/* اقدام سریع */}
       <div className="flex items-center gap-2">
-        <button onClick={onOpenShootMode} className="btn btn-primary flex-1">
-          <Play className="w-4 h-4" fill="currentColor" />
-          اجرای این ژست
+        <button onClick={() => setFilmOpen(true)} className="btn btn-ghost" aria-label="فیلم‌برداری همین ژست" title="فیلم‌برداری همین ژست">
+          <Clapperboard className="w-4 h-4 text-rose" />
         </button>
         <button onClick={onNextPose} className="btn btn-ghost">
           <Shuffle className="w-4 h-4 text-gold" />
@@ -192,43 +215,44 @@ export const PoseDetailView: React.FC<Props> = ({
         </button>
       </div>
 
-      <ScriptPanel lines={pose.photographerScript} big={bigScript} />
-
-      {pose.variations.length > 0 && (
-        <Accordion title="تنوع‌های همین ژست" icon={<Repeat className="w-4 h-4 text-gold" />}>
-          <div className="flex flex-wrap gap-1.5">
-            {pose.variations.map((v, i) => (
-              <span key={i} className="pill !text-[11px] !py-1.5">
-                {v}
-              </span>
-            ))}
-          </div>
-        </Accordion>
-      )}
-
-      <PoseChecklist pose={pose} />
-
-      <button onClick={() => setFilmOpen(true)} className="btn w-full !py-3.5" style={{background:'color-mix(in srgb, var(--color-rose) 14%, transparent)',border:'1px solid color-mix(in srgb, var(--color-rose) 45%, transparent)',color:'var(--color-rose)'}}><Clapperboard className="w-4 h-4" /> فیلم‌برداری همین ژست، ساخت پلان</button>
-
-      {/* مراحل اجرا */}
+      {/* ترتیب اجرای ژست: اول راهنما، بعد تنوع و فیلم، سپس جزئیات */}
       <Accordion defaultOpen title="مراحل اجرا">
         <ol className="space-y-2.5">
-          {pose.steps.map((s, i) => (
+          {pose.steps.map((step, i) => (
             <li key={i} className="flex items-start gap-2.5 text-[12.5px] leading-relaxed">
               <span
                 className="shrink-0 w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-extrabold mt-0.5"
-                style={{
-                  background: 'color-mix(in srgb, var(--color-gold) 18%, transparent)',
-                  color: 'var(--color-gold)',
-                }}
-              >
-                {i + 1}
-              </span>
-              {s}
+                style={{ background: 'color-mix(in srgb, var(--color-gold) 18%, transparent)', color: 'var(--color-gold)' }}
+              >{i + 1}</span>
+              {step}
             </li>
           ))}
         </ol>
       </Accordion>
+
+      <ScriptPanel lines={pose.photographerScript} big={bigScript} />
+
+      <Accordion title="تنوع" icon={<Repeat className="w-4 h-4 text-gold" />}>
+        {pose.variations.length > 0 ? (
+          <div className="flex flex-wrap gap-1.5">
+            {pose.variations.map((variation, i) => (
+              <span key={i} className="pill !text-[11px] !py-1.5">{variation}</span>
+            ))}
+          </div>
+        ) : (
+          <p className="text-[12px] text-muted">برای این ژست هنوز تنوعی ثبت نشده است.</p>
+        )}
+      </Accordion>
+
+      <button
+        onClick={() => setFilmOpen(true)}
+        className="btn w-full !py-3.5"
+        style={{ background: 'color-mix(in srgb, var(--color-rose) 14%, transparent)', border: '1px solid color-mix(in srgb, var(--color-rose) 45%, transparent)', color: 'var(--color-rose)' }}
+      >
+        <Clapperboard className="w-4 h-4" /> فیلم‌برداری همین ژست
+      </button>
+
+      <PoseChecklist pose={pose} />
 
       {/* فرم بدن */}
       <Accordion title="فرم بدن و جزئیات">

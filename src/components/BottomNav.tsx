@@ -1,12 +1,12 @@
 import React from 'react';
-import { Home, LayoutGrid, MapPin, Heart, Shuffle } from 'lucide-react';
+import { Home, LayoutGrid, MapPin, Heart, Pencil } from 'lucide-react';
 import { ViewTab } from '../types/pose';
 
 interface Props {
   activeTab: ViewTab;
   onTabChange: (tab: ViewTab) => void;
-  onNextPose: () => void;
   favoritesCount: number;
+  onOpenOffice: () => void;
 }
 
 const ITEMS: { tab: ViewTab; icon: React.ElementType; label: string }[] = [
@@ -19,50 +19,15 @@ const ITEMS: { tab: ViewTab; icon: React.ElementType; label: string }[] = [
 export const BottomNav: React.FC<Props> = ({
   activeTab,
   onTabChange,
-  onNextPose,
   favoritesCount,
+  onOpenOffice,
 }) => (
-  <nav
-    className="fixed bottom-0 left-0 right-0 z-40 safe-bottom border-t border-line"
-    style={{
-      background: 'color-mix(in srgb, var(--color-bg) 88%, transparent)',
-      backdropFilter: 'blur(16px)',
-    }}
-  >
-    <div className="max-w-md mx-auto px-3 h-[64px] flex items-center justify-between">
-      {ITEMS.slice(0, 2).map((it) => (
-        <NavBtn
-          key={it.tab}
-          {...it}
-          active={activeTab === it.tab}
-          onClick={() => onTabChange(it.tab)}
-        />
-      ))}
-
-      {/* دکمه اصلی: پیشنهاد ژست بعدی */}
-      <button
-        onClick={onNextPose}
-        className="relative -translate-y-4 w-14 h-14 rounded-full flex flex-col items-center justify-center a-ring active:scale-90 transition-transform"
-        style={{
-          background: 'linear-gradient(135deg, var(--color-gold2), var(--color-gold) 55%, var(--color-rose))',
-          color: '#241B0C',
-          border: '4px solid var(--color-bg)',
-          boxShadow: '0 12px 30px -10px color-mix(in srgb, var(--color-gold) 80%, transparent)',
-        }}
-        aria-label="پیشنهاد ژست بعدی"
-      >
-        <Shuffle className="w-5 h-5" />
-        <span className="text-[9px] font-extrabold mt-0.5">بعدی</span>
-      </button>
-
-      {ITEMS.slice(2).map((it) => (
-        <NavBtn
-          key={it.tab}
-          {...it}
-          active={activeTab === it.tab}
-          badge={it.tab === 'favorites' ? favoritesCount : undefined}
-          onClick={() => onTabChange(it.tab)}
-        />
+  <nav className="fixed bottom-3 left-3 right-3 z-40 safe-bottom">
+    <div className="relative max-w-md mx-auto h-[68px] px-3 flex items-center justify-between rounded-[30px] border border-line bg-surface shadow-xl">
+      <button onClick={onOpenOffice} className="absolute -right-1 -translate-y-1/2 top-1/2 w-14 h-14 rounded-full flex items-center justify-center shadow-lg active:scale-95 transition-transform" style={{ background: 'var(--color-gold)', color: '#241B0C' }} aria-label="دفتر آتلیه" title="دفتر آتلیه"><Pencil className="w-6 h-6" /></button>
+      <div className="w-12 shrink-0" />
+      {ITEMS.map((it) => (
+        <NavBtn key={it.tab} {...it} active={activeTab === it.tab} badge={it.tab === 'favorites' ? favoritesCount : undefined} onClick={() => onTabChange(it.tab)} />
       ))}
     </div>
   </nav>

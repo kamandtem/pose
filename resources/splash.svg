@@ -43,5 +43,6 @@
   <path d="M306 274l-40 96q40 14 80 0z" fill="url(#pdRose)"/>
 </g>
 <rect x="1216" y="1690" width="300" height="6" rx="3" fill="#F0B357" opacity=".55"/>
-<text x="1366" y="1830" text-anchor="middle" font-family="DejaVu Sans, sans-serif" font-size="104" font-weight="700" fill="#F5EFE6" letter-spacing="14">POSE DIRECTOR</text>
+<text x="1366" y="1830" text-anchor="middle" font-family="Vazirmatn, DejaVu Sans, sans-serif" font-size="104" font-weight="700" fill="#F5EFE6">کارگردان ژست</text>
+<text x="1366" y="1945" text-anchor="middle" font-family="Vazirmatn, DejaVu Sans, sans-serif" font-size="46" font-weight="500" fill="#B9AFC2">برنامه‌نویس: محمدرضا ارجمند</text>
 </svg>

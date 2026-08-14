@@ -28,6 +28,12 @@ import {
   deleteMyLocation,
   getSelectedLocationId,
   setSelectedLocationId,
+  getStudioProfile,
+  saveStudioProfile,
+  getOfficeProjects,
+  saveOfficeProject,
+  deleteOfficeProject,
+  getOfficeProject,
 } from './services/storage';
 
 import { Header } from './components/Header';
@@ -35,7 +41,6 @@ import { BottomNav } from './components/BottomNav';
 import { SideMenu } from './components/SideMenu';
 import { Splash } from './components/Splash';
 import { Onboarding } from './components/Onboarding';
-import { ShootMode } from './components/ShootMode';
 import { AddPoseSheet } from './components/AddPoseSheet';
 import { ToastData, ToastStack } from './components/Toast';
 import { ConfirmDialog, ConfirmRequest } from './components/ConfirmDialog';
@@ -49,11 +54,11 @@ import { MyPosesView } from './views/MyPosesView';
 import { LocationsView } from './views/LocationsView';
 import { PoseDetailView } from './views/PoseDetailView';
 import { SettingsView } from './views/SettingsView';
-import { AboutView } from './views/AboutView';
 import { PrinciplesView } from './views/PrinciplesView';
-import { EmergencyView } from './views/EmergencyView';
-import { PoseGeneratorView } from './views/PoseGeneratorView';
 import { MyLocationsView } from './views/MyLocationsView';
+import { OfficeView } from './views/OfficeView';
+import { ProjectDetailView } from './views/ProjectDetailView';
+import { StudioProfileDialog } from './components/StudioProfileDialog';
 import { WeatherView } from './views/WeatherView';
 import { MyLocationDialog } from './components/MyLocationDialog';
 
@@ -71,7 +76,6 @@ export default function App() {
   const [filters, setFilters] = useState<FilterState>({ ...EMPTY_FILTERS });
 
   const [menuOpen, setMenuOpen] = useState(false);
-  const [shootOpen, setShootOpen] = useState(false);
   const [sheetOpen, setSheetOpen] = useState(false);
   const [editingPose, setEditingPose] = useState<Pose | null>(null);
   const [toasts, setToasts] = useState<ToastData[]>([]);
@@ -81,7 +85,12 @@ export default function App() {
   const [selectedLocationId, setSelLocId] = useState<string | null>(null);
   const [locDialogOpen, setLocDialogOpen] = useState(false);
   const [editingLoc, setEditingLoc] = useState<MyLocation | null>(null);
-  const navDepthRef = useRef(0);
+  const [studioProfile, setStudioProfile] = useState<any>(null);
+  const [officeProjects, setOfficeProjects] = useState<any[]>([]);
+  const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null);
+  const [studioDialogOpen, setStudioDialogOpen] = useState(false);
+  const histRef = useRef<ViewTab[]>([]);
+  const goBackRef = useRef<() => void>(() => {});
 
   const toast = useCallback((text: string, ok = true) => {
     const id = Date.now() + Math.random();
@@ -96,18 +105,14 @@ export default function App() {
     setRecentIds(getRecentIds());
     setPrefs(getPrefs());
     setMyLocations(getMyLocations());
+    setStudioProfile(getStudioProfile());
+    setOfficeProjects(getOfficeProjects());
     setSelLocId(getSelectedLocationId());
     setSelected((cur) => (cur ? all.find((p) => p.id === cur.id) || null : null));
   }, []);
 
   // ناوبری برگشت: هر تغییر صفحه یک ورودی تاریخچه مرورگر می‌سازد تا دکمه برگشت
   // (چه در وب، چه دکمه سخت‌افزاری اندروید) همیشه دقیقاً یک قدم به عقب برود.
-  useEffect(() => {
-    if (!window.history.state) {
-      window.history.replaceState({ tab: 'home', depth: 0 }, '');
-    }
-  }, []);
-
   const askExit = useCallback(() => {
     setConfirmRequest({
       title: 'خروج از برنامه',
@@ -129,59 +134,67 @@ export default function App() {
     });
   }, []);
 
-  useEffect(() => {
-    const closeTopOverlay = (): boolean => {
-      if (sheetOpen) { setSheetOpen(false); return true; }
-      if (shootOpen) { setShootOpen(false); return true; }
-      if (menuOpen) { setMenuOpen(false); return true; }
-      if (confirmRequest) { setConfirmRequest(null); return true; }
-      if (addToProjectPose) { setAddToProjectPose(null); return true; }
-      if (locDialogOpen) { setLocDialogOpen(false); return true; }
-      return false;
-    };
+  /**
+   * مدیریت دکمه‌ی برگشت (دکمه‌ی سخت‌افزاری اندروید و دکمه‌ی برگشت مرورگر):
+   *  • اگر پنجره‌ای باز است → همان را ببند.
+   *  • یک بار زدن → یک مرحله به عقب (صفحه‌ی قبلی).
+   *  • زدن‌های بعدی تا رسیدن به خانه ادامه می‌دهد.
+   *  • در خانه با زدن برگشت → پرسیدن خروج از برنامه.
+   */
+  const goBack = useCallback(() => {
+    // ۱) اول اگر پنجره/اورلی باز است بسته شود
+    if (sheetOpen) { setSheetOpen(false); return; }
+    if (menuOpen) { setMenuOpen(false); return; }
+    if (confirmRequest) { setConfirmRequest(null); return; }
+    if (addToProjectPose) { setAddToProjectPose(null); return; }
+    if (locDialogOpen) { setLocDialogOpen(false); return; }
+    if (studioDialogOpen) { setStudioDialogOpen(false); return; }
 
-    const onPopState = (e: PopStateEvent) => {
-      if (closeTopOverlay()) {
-        // اورلی بسته شد؛ ورودی تاریخچه را برای همان صفحه برمی‌گردانیم
-        window.history.pushState(e.state || { tab, depth: navDepthRef.current }, '');
-        return;
-      }
-      const state = e.state as { tab?: ViewTab; depth?: number } | null;
-      if (state?.tab) {
-        setTab(state.tab);
-        navDepthRef.current = state.depth || 0;
-      }
+    // ۲) یک مرحله به عقب برو
+    if (histRef.current.length > 0) {
+      const prev = histRef.current[histRef.current.length - 1];
+      histRef.current = histRef.current.slice(0, -1);
+      setTab(prev);
+      scrollTop();
+      return;
+    }
+
+    // ۳) در خانه هستیم: خروج از برنامه را بپرس
+    askExit();
+  }, [sheetOpen, menuOpen, confirmRequest, addToProjectPose, locDialogOpen, studioDialogOpen, askExit]);
+
+  useEffect(() => { goBackRef.current = goBack; }, [goBack]);
+
+  useEffect(() => {
+    // یک ورودی «تله» در تاریخچه نگه می‌داریم تا دکمه‌ی برگشت مرورگر/سیستم همیشه به goBack برسد
+    window.history.pushState({ trap: true }, '');
+    const onPopState = () => {
+      goBackRef.current();
+      window.history.pushState({ trap: true }, '');
     };
     window.addEventListener('popstate', onPopState);
 
-    let removeCapListener: (() => void) | undefined;
+    let removeCap: (() => void) | undefined;
     const cap = (window as any).Capacitor;
     if (cap?.isNativePlatform?.()) {
       import('@capacitor/app')
         .then((mod) => {
-          const sub = mod.App.addListener('backButton', ({ canGoBack }) => {
-            if (closeTopOverlay()) return;
-            if (canGoBack) window.history.back();
-            else askExit();
-          });
-          removeCapListener = () => { sub.then((s) => s.remove()).catch(() => {}); };
+          const sub = mod.App.addListener('backButton', () => goBackRef.current());
+          removeCap = () => { sub.then((sm) => sm.remove()).catch(() => {}); };
         })
-        .catch(() => {
-          /* روی وب یا اگر پلاگین موجود نباشد، فقط popstate کار می‌کند */
-        });
+        .catch(() => {});
     }
-
     return () => {
       window.removeEventListener('popstate', onPopState);
-      removeCapListener?.();
+      removeCap?.();
     };
-  }, [sheetOpen, shootOpen, menuOpen, confirmRequest, addToProjectPose, locDialogOpen, askExit, tab]);
+  }, []);
 
   useEffect(() => {
     reload();
     setShowIntro(!hasOnboarded());
-    const t1 = setTimeout(() => setLeavingSplash(true), 1350);
-    const t2 = setTimeout(() => setBooting(false), 1850);
+    const t1 = setTimeout(() => setLeavingSplash(true), 700);
+    const t2 = setTimeout(() => setBooting(false), 1050);
     return () => {
       clearTimeout(t1);
       clearTimeout(t2);
@@ -191,10 +204,9 @@ export default function App() {
   const scrollTop = () => window.scrollTo({ top: 0, behavior: 'smooth' });
 
   const goTab = (t: ViewTab) => {
-    if (t !== tab) {
-      navDepthRef.current += 1;
-      window.history.pushState({ tab: t, depth: navDepthRef.current }, '');
-    }
+    if (t === tab) { scrollTop(); return; }
+    // خانه ریشه است: پشته‌ی ناوبری را خالی می‌کند
+    histRef.current = t === 'home' ? [] : [...histRef.current, tab];
     setTab(t);
     scrollTop();
   };
@@ -203,10 +215,9 @@ export default function App() {
     setSelected(pose);
     setRecentIds(pushRecent(pose.id));
     if (tab !== 'detail') {
-      navDepthRef.current += 1;
-      window.history.pushState({ tab: 'detail', depth: navDepthRef.current }, '');
+      histRef.current = [...histRef.current, tab];
+      setTab('detail');
     }
-    setTab('detail');
     scrollTop();
   };
 
@@ -217,26 +228,14 @@ export default function App() {
   };
 
   const nextPose = (sameCategory = false) => {
-    const base: FilterState = sameCategory && selected
-      ? { ...EMPTY_FILTERS, category: selected.category }
-      : filters;
+    const base: FilterState = sameCategory && selected ? { ...EMPTY_FILTERS, category: selected.category } : filters;
     const next = getNextPose(selected?.id, base);
     setSelected(next);
     setRecentIds(getRecentIds());
-    if (!shootOpen) {
-      setTab('detail');
-      scrollTop();
-    }
+    setTab('detail');
+    scrollTop();
   };
 
-  const openShootMode = () => {
-    if (!selected) {
-      const first = poses[0];
-      if (!first) return;
-      setSelected(first);
-    }
-    setShootOpen(true);
-  };
 
   const openAddPose = () => {
     setEditingPose(null);
@@ -339,10 +338,55 @@ export default function App() {
     goTab('weather');
   };
 
+  const useCurrentForWeather = () => {
+    setSelectedLocationId(null);
+    setSelLocId(null);
+    goTab('weather');
+  };
+
   const selectedLocation = useMemo(
     () => myLocations.find((l) => l.id === selectedLocationId) || null,
     [myLocations, selectedLocationId]
   );
+
+  
+
+  const saveStudio = (p: any) => {
+    saveStudioProfile(p);
+    setStudioProfile(p);
+    setStudioDialogOpen(false);
+    toast('پروفایل استودیو ذخیره شد.');
+  };
+
+  const addOfficeProject = () => {
+    const id = 'proj_' + Date.now().toString(36);
+    const proj = { id, name: 'پروژه جدید', createdAt: Date.now(), updatedAt: Date.now() };
+    saveOfficeProject(proj);
+    reload();
+    setSelectedProjectId(id);
+    goTab('office-project-detail');
+  };
+
+  const selectOfficeProject = (p: any) => {
+    setSelectedProjectId(p.id);
+    goTab('office-project-detail');
+  };
+
+  const saveOfficeProj = (p: any) => {
+    saveOfficeProject(p);
+    reload();
+    toast('پروژه ذخیره شد.');
+  };
+
+  const deleteOfficeProj = (id: string) => {
+    deleteOfficeProject(id);
+    reload();
+    setSelectedProjectId(null);
+    // ناوبری بازگشت توسط onBack={goBack} در خود صفحه انجام می‌شود
+    toast('پروژه حذف شد.');
+  };
+
+  const selectedProject = selectedProjectId ? getOfficeProject(selectedProjectId) : null;
 
   const filtered = useMemo(() => filterPoses(poses, filters, favoriteIds), [poses, filters, favoriteIds]);
   const mineCount = useMemo(() => poses.filter((p) => p.isCustom).length, [poses]);
@@ -363,7 +407,6 @@ export default function App() {
     <div className="min-h-screen pb-24">
       <Header
         onOpenMenu={() => setMenuOpen(true)}
-        onOpenShootMode={openShootMode}
         onOpenAddPose={openAddPose}
       />
 
@@ -377,8 +420,6 @@ export default function App() {
             onDelete={removePose}
             onAddToProject={addToProject}
             onToggleFavorite={handleFavorite}
-            onNextPose={() => nextPose(false)}
-            onOpenShootMode={openShootMode}
             onOpenAddPose={openAddPose}
             onPickCategory={pickCategory}
             onPickLocation={pickLocation}
@@ -412,13 +453,34 @@ export default function App() {
             onEdit={editLoc}
             onDelete={removeLoc}
             onUseForWeather={useLocationForWeather}
+            onUseCurrent={useCurrentForWeather}
+          />
+        )}
+
+        {tab === 'office' && (
+          <OfficeView
+            projects={officeProjects}
+            profile={studioProfile}
+            onAddProject={addOfficeProject}
+            onSelectProject={selectOfficeProject}
+            onEditProfile={() => setStudioDialogOpen(true)}
+          />
+        )}
+
+        {tab === 'office-project-detail' && selectedProject && (
+          <ProjectDetailView
+            project={selectedProject}
+            profile={studioProfile}
+            onBack={goBack}
+            onSave={saveOfficeProj}
+            onDelete={deleteOfficeProj}
           />
         )}
 
         {tab === 'weather' && (
           <WeatherView
             selected={selectedLocation}
-            onBack={() => (window.history.length > 1 ? window.history.back() : goTab('home'))}
+            onBack={goBack}
             onManageLocations={() => goTab('mylocations')}
           />
         )}
@@ -431,7 +493,6 @@ export default function App() {
             onSelect={openPose}
             onDelete={removePose}
             onAddToProject={addToProject}
-            onOpenShootMode={openShootMode}
             onTab={goTab}
           />
         )}
@@ -461,20 +522,13 @@ export default function App() {
 
         {tab === 'principles' && <PrinciplesView />}
 
-        {tab === 'generator' && <PoseGeneratorView />}
-
-        {tab === 'emergency' && <EmergencyView />}
-
-        {tab === 'about' && <AboutView />}
-
         {tab === 'detail' && selected && (
           <PoseDetailView
             pose={selected}
-            onBack={() => (window.history.length > 1 ? window.history.back() : goTab('library'))}
+            onBack={goBack}
             isFavorite={favoriteIds.includes(selected.id)}
             onToggleFavorite={handleFavorite}
             onNextPose={() => nextPose(false)}
-            onOpenShootMode={openShootMode}
             onDataChanged={reload}
             onDelete={removePose}
             onAddToProject={addToProject}
@@ -496,8 +550,8 @@ export default function App() {
       <BottomNav
         activeTab={tab}
         onTabChange={goTab}
-        onNextPose={() => nextPose(false)}
         favoritesCount={favoriteIds.length}
+        onOpenOffice={() => goTab('office')}
       />
 
       <SideMenu
@@ -506,7 +560,7 @@ export default function App() {
         activeTab={tab}
         onNavigate={goTab}
         onOpenAddPose={openAddPose}
-        onOpenShootMode={openShootMode}
+        onOpenStudioProfile={() => setStudioDialogOpen(true)}
         theme={prefs.theme}
         onToggleTheme={() =>
           updatePrefs({ ...prefs, theme: prefs.theme === 'dark' ? 'light' : 'dark' })
@@ -514,15 +568,7 @@ export default function App() {
         counts={{ total: poses.length, favorites: favoriteIds.length, mine: mineCount }}
       />
 
-      <ShootMode
-        open={shootOpen}
-        pose={selected}
-        onClose={() => setShootOpen(false)}
-        onNext={(sameCategory) => nextPose(sameCategory)}
-        isFavorite={!!selected && favoriteIds.includes(selected.id)}
-        onToggleFavorite={handleFavorite}
-        bigScript={prefs.bigScript}
-      />
+
 
       <AddPoseSheet
         open={sheetOpen}
@@ -542,6 +588,13 @@ export default function App() {
         pose={addToProjectPose}
         onClose={() => setAddToProjectPose(null)}
         onAdded={(message) => toast(message, true)}
+      />
+
+      <StudioProfileDialog
+        open={studioDialogOpen}
+        profile={studioProfile}
+        onCancel={() => setStudioDialogOpen(false)}
+        onConfirm={saveStudio}
       />
 
       <MyLocationDialog

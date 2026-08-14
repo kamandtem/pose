@@ -33,6 +33,42 @@ const TYPES: PoseType[] = [
 ];
 const DIFFS: DifficultyLevel[] = ['آسان', 'متوسط', 'حرفه‌ای'];
 
+const DIFF_COLOR: Record<DifficultyLevel, string> = {
+  'آسان': 'var(--color-teal)',
+  'متوسط': 'var(--color-gold)',
+  'حرفه‌ای': 'var(--color-rose)',
+};
+
+/** چیپ انتخابی جذاب (جایگزین دراپ‌داون خام) */
+function ChipSelect<T extends string>({ label, options, value, onChange }: {
+  label: string; options: T[]; value: T; onChange: (v: T) => void;
+}) {
+  return (
+    <div>
+      <span className="label">{label}</span>
+      <div className="flex flex-wrap gap-1.5">
+        {options.map((o) => {
+          const active = value === o;
+          return (
+            <button
+              key={o}
+              type="button"
+              onClick={() => onChange(o)}
+              className="px-3.5 py-2 rounded-2xl text-[12px] font-bold transition-all active:scale-95"
+              style={active
+                ? { background: 'linear-gradient(135deg, var(--color-gold2), var(--color-gold))', color: '#241B0C', border: '1px solid var(--color-gold)', boxShadow: '0 6px 16px -8px color-mix(in srgb, var(--color-gold) 90%, transparent)' }
+                : { background: 'color-mix(in srgb, var(--color-ink) 4%, transparent)', color: 'var(--color-muted)', border: '1px solid var(--color-line)' }}
+            >
+              {o}
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+
 const ART_BY_TYPE: Record<PoseType, ArtKey> = {
   'ایستاده': 'faceToFace',
   'نشسته': 'sitting',
@@ -124,6 +160,7 @@ export const AddPoseSheet: React.FC<Props> = ({ open, onClose, onSaved, editing 
   const [locations, setLocations] = useState<LocationType[]>(['باغ عمارت']);
   const [steps, setSteps] = useState<string[]>(blankLines);
   const [script, setScript] = useState<string[]>(blankLines);
+  const [variations, setVariations] = useState<string[]>(['']);
   const [mistakes, setMistakes] = useState<string[]>(['']);
   const [tagText, setTagText] = useState('');
   const [note, setNote] = useState('');
@@ -141,6 +178,7 @@ export const AddPoseSheet: React.FC<Props> = ({ open, onClose, onSaved, editing 
       setLocations(editing.locations.length ? editing.locations : ['باغ عمارت']);
       setSteps(editing.steps.length ? editing.steps : blankLines);
       setScript(editing.photographerScript.length ? editing.photographerScript : blankLines);
+      setVariations(editing.variations.length ? editing.variations : ['']);
       setMistakes(editing.commonMistakes.length ? editing.commonMistakes : ['']);
       setTagText(editing.tags.filter((t) => t !== editing.poseType).join('، '));
       setNote(editing.note || '');
@@ -155,6 +193,7 @@ export const AddPoseSheet: React.FC<Props> = ({ open, onClose, onSaved, editing 
       setLocations(['باغ عمارت']);
       setSteps(blankLines);
       setScript(blankLines);
+      setVariations(['']);
       setMistakes(['']);
       setTagText('');
       setNote('');
@@ -190,6 +229,7 @@ export const AddPoseSheet: React.FC<Props> = ({ open, onClose, onSaved, editing 
   const submit = () => {
     const cleanSteps = steps.map((s) => s.trim()).filter(Boolean);
     const cleanScript = script.map((s) => s.trim()).filter(Boolean);
+    const cleanVariations = variations.map((s) => s.trim()).filter(Boolean);
 
     if (!title.trim()) {
       onSaved('عنوان ژست را وارد کنید.', false);
@@ -235,7 +275,7 @@ export const AddPoseSheet: React.FC<Props> = ({ open, onClose, onSaved, editing 
       eyeDirection: 'نگاه در ثانیه آخر روی نقطه هدف بنشیند.',
       photographerScript: cleanScript.length ? cleanScript : ['آرام در همین حالت بمانید.'],
       commonMistakes: mistakes.map((m) => m.trim()).filter(Boolean),
-      variations: [],
+      variations: cleanVariations,
       cameraTips: {
         framing: 'مدیوم شات',
         cameraAngle: 'هم‌سطح چشم سوژه',
@@ -380,59 +420,46 @@ export const AddPoseSheet: React.FC<Props> = ({ open, onClose, onSaved, editing 
             />
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <span className="label">دسته‌بندی</span>
-              <select
-                value={category}
-                onChange={(e) => setCategory(e.target.value as CategoryType)}
-                className="field"
-              >
-                {CATEGORIES.map((c) => (
-                  <option key={c} value={c}>
-                    {c}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div>
-              <span className="label">حالت ژست</span>
-              <select
-                value={poseType}
-                onChange={(e) => setPoseType(e.target.value as PoseType)}
-                className="field"
-              >
-                {TYPES.map((t) => (
-                  <option key={t} value={t}>
-                    {t}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div>
-              <span className="label">سطح سختی</span>
-              <select
-                value={difficulty}
-                onChange={(e) => setDifficulty(e.target.value as DifficultyLevel)}
-                className="field"
-              >
-                {DIFFS.map((d) => (
-                  <option key={d} value={d}>
-                    {d}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div>
-              <span className="label">تعداد نفرات</span>
-              <input
-                type="number"
-                min={1}
-                max={20}
-                value={peopleCount}
-                onChange={(e) => setPeopleCount(Math.max(1, Number(e.target.value) || 1))}
-                className="field"
-              />
+          <div className="space-y-4">
+            <ChipSelect label="دسته‌بندی" options={CATEGORIES} value={category} onChange={setCategory} />
+            <ChipSelect label="حالت ژست" options={TYPES} value={poseType} onChange={setPoseType} />
+
+            <div className="grid grid-cols-1 gap-4">
+              <div>
+                <span className="label">سطح سختی</span>
+                <div className="grid grid-cols-3 gap-1.5">
+                  {DIFFS.map((d) => {
+                    const active = difficulty === d;
+                    const c = DIFF_COLOR[d];
+                    return (
+                      <button
+                        key={d}
+                        type="button"
+                        onClick={() => setDifficulty(d)}
+                        className="flex items-center justify-center gap-1.5 py-2.5 rounded-2xl text-[12px] font-bold transition-all active:scale-95"
+                        style={active
+                          ? { background: `color-mix(in srgb, ${c} 18%, transparent)`, color: c, border: `1px solid ${c}` }
+                          : { background: 'transparent', color: 'var(--color-muted)', border: '1px solid var(--color-line)' }}
+                      >
+                        <span className="w-2 h-2 rounded-full" style={{ background: c }} />
+                        {d}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              <div>
+                <span className="label">تعداد نفرات</span>
+                <input
+                  type="number"
+                  min={1}
+                  max={20}
+                  value={peopleCount}
+                  onChange={(e) => setPeopleCount(Math.max(1, Number(e.target.value) || 1))}
+                  className="field"
+                />
+              </div>
             </div>
           </div>
 
@@ -469,6 +496,13 @@ export const AddPoseSheet: React.FC<Props> = ({ open, onClose, onSaved, editing 
               setter={setScript}
             />
           </div>
+
+          <ListEditor
+            label="تنوع"
+            hint="مثال: همین ژست را با نگاه به دوربین یا نمای نزدیک اجرا کن."
+            items={variations}
+            setter={setVariations}
+          />
 
           <ListEditor
             label="اشتباهات رایج"
@@ -570,8 +604,10 @@ const PhotoCropper: React.FC<PhotoCropperProps> = ({ source, onCancel, onConfirm
   const frameW = frameRef.current?.clientWidth || 400;
   const frameH = frameRef.current?.clientHeight || 300;
   const baseScale = naturalSize ? Math.max(frameW / naturalSize.w, frameH / naturalSize.h) : 1;
-  const dispW = naturalSize ? naturalSize.w * baseScale * zoom : frameW;
-  const dispH = naturalSize ? naturalSize.h * baseScale * zoom : frameH;
+  const baseW = naturalSize ? naturalSize.w * baseScale : frameW;
+  const baseH = naturalSize ? naturalSize.h * baseScale : frameH;
+  const dispW = baseW * zoom;
+  const dispH = baseH * zoom;
 
   const clamp = (p: { x: number; y: number }, w = dispW, h = dispH) => {
     const maxX = Math.max(0, (w - frameW) / 2);
@@ -696,9 +732,10 @@ const PhotoCropper: React.FC<PhotoCropperProps> = ({ source, onCancel, onConfirm
                 draggable={false}
                 className="absolute top-1/2 left-1/2 select-none pointer-events-none"
                 style={{
-                  width: dispW,
-                  height: dispH,
-                  transform: `translate(-50%, -50%) translate(${pos.x}px, ${pos.y}px)`,
+                  width: baseW,
+                  height: baseH,
+                  transform: `translate(-50%, -50%) translate(${pos.x}px, ${pos.y}px) scale(${zoom})`,
+                  transformOrigin: 'center center',
                 }}
               />
             ) : (

@@ -99,12 +99,12 @@ export const MapPicker: React.FC<Props> = ({ lat, lng, onChange }) => {
   };
 
   return (
-    <div className="space-y-2">
+    <div className="space-y-2 min-w-0 max-w-full overflow-hidden">
       <div
         className="relative rounded-2xl overflow-hidden border border-line"
-        style={{ height: 220, background: 'var(--color-surface2)' }}
+        style={{ height: 220, width: '100%', maxWidth: '100%', minWidth: 0, background: 'var(--color-surface2)' }}
       >
-        <div ref={ref} style={{ position: 'absolute', inset: 0 }} dir="ltr" />
+        <div ref={ref} style={{ position: 'absolute', inset: 0, width: '100%', maxWidth: '100%', minWidth: 0 }} dir="ltr" />
         {loading && (
           <div className="absolute inset-0 flex items-center justify-center text-muted text-[12px] gap-2">
             <Loader2 className="w-4 h-4 animate-spin" />

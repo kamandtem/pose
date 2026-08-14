@@ -116,7 +116,7 @@ export const WeatherView: React.FC<Props> = ({ selected, onBack, onManageLocatio
             <p className="text-[13px] opacity-90">در حال گرفتن موقعیت و آب‌وهوا…</p>
           </div>
         ) : error && !coords ? (
-          <ErrorBox message={error} onRetry={load} />
+          <ErrorBox message={error} onRetry={load} onManageLocations={onManageLocations} />
         ) : (
           <Content
             coords={coords!}
@@ -149,13 +149,13 @@ const Content: React.FC<{
   return (
     <>
       {/* شمارش معکوس بزرگ */}
-      <div className="mt-10 mb-8" style={{ color: '#FFF8EC' }}>
+      <div className="mt-10 mb-8 text-center" style={{ color: '#FFF8EC' }}>
         {cd.inProgress ? (
-          <h1 className="text-[30px] leading-tight font-extrabold">
+          <h1 className="text-[34px] leading-tight font-extrabold">
             گلدن‌تایم <span style={{ color: '#FFE9C4' }}>همین حالا</span> برقرار است
           </h1>
         ) : (
-          <h1 className="text-[30px] leading-[1.25] font-extrabold">
+          <h1 className="text-[34px] leading-[1.25] font-extrabold">
             {cd.tomorrow ? 'گلدن‌تایم فردا تا' : 'گلدن‌تایم تا'}
             <br />
             <span className="text-[40px]" style={{ color: '#FFE9C4' }}>{formatCountdown(cd.ms)}</span> دیگر
@@ -268,9 +268,9 @@ const Timeline: React.FC<{ events: SunEvent[] }> = ({ events }) => (
             >
               <Icon className="w-5 h-5" style={{ color: '#241B0C' }} />
             </span>
-            <div className="flex-1">
-              <h3 className="font-extrabold text-[15px]" style={{ color: '#FFF8EC' }}>{e.label}</h3>
-              <p className="text-[12px]" style={{ color: 'rgba(255,248,236,.8)' }} dir="ltr">
+            <div className="flex-1 text-center py-1">
+              <h3 className="font-extrabold text-[18px] leading-tight" style={{ color: '#FFF8EC' }}>{e.label}</h3>
+              <p className="text-[15px] font-bold mt-1" style={{ color: 'rgba(255,248,236,.9)' }} dir="ltr">
                 {formatRange(e)}
               </p>
             </div>
@@ -284,7 +284,7 @@ const Timeline: React.FC<{ events: SunEvent[] }> = ({ events }) => (
   </div>
 );
 
-const ErrorBox: React.FC<{ message: string; onRetry: () => void }> = ({ message, onRetry }) => (
+const ErrorBox: React.FC<{ message: string; onRetry: () => void; onManageLocations?: () => void }> = ({ message, onRetry, onManageLocations }) => (
   <div className="flex flex-col items-center justify-center py-24 text-center px-6" style={{ color: '#FFF8EC' }}>
     <div
       className="w-16 h-16 rounded-3xl flex items-center justify-center mb-4"
@@ -294,8 +294,19 @@ const ErrorBox: React.FC<{ message: string; onRetry: () => void }> = ({ message,
     </div>
     <h2 className="font-extrabold text-[16px]">موقعیت پیدا نشد</h2>
     <p className="text-[12px] leading-relaxed mt-2 max-w-xs" style={{ color: 'rgba(255,248,236,.85)' }}>{message}</p>
-    <button onClick={onRetry} className="btn btn-primary mt-5">
-      <RefreshCw className="w-4 h-4" /> تلاش دوباره
-    </button>
+    <div className="flex flex-col items-center gap-2 mt-5">
+      <button onClick={onRetry} className="btn btn-primary">
+        <RefreshCw className="w-4 h-4" /> تلاش دوباره
+      </button>
+      {onManageLocations && (
+        <button
+          onClick={onManageLocations}
+          className="flex items-center gap-1.5 px-4 py-2 rounded-full text-[12px] font-bold"
+          style={{ background: 'rgba(8,6,14,.3)', color: '#FFF8EC' }}
+        >
+          <MapPin className="w-3.5 h-3.5" /> انتخاب لوکیشن روی نقشه
+        </button>
+      )}
+    </div>
   </div>
 );

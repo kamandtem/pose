@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import {
   Heart,
-  Play,
   CalendarDays,
   Plus,
   Trash2,
@@ -9,9 +8,11 @@ import {
   ChevronRight,
   Search,
   X,
+  CheckCircle2,
 } from 'lucide-react';
 import { Pose, ViewTab } from '../types/pose';
 import { PoseCard } from '../components/PoseCard';
+import { PoseVisual } from '../components/PoseVisual';
 import { EmptyState } from '../components/EmptyState';
 import { SectionGuide } from '../components/SectionGuide';
 import { ConfirmDialog, ConfirmRequest } from '../components/ConfirmDialog';
@@ -26,7 +27,6 @@ interface Props {
   onSelect: (p: Pose) => void;
   onDelete: (p: Pose) => void;
   onAddToProject: (p: Pose) => void;
-  onOpenShootMode: () => void;
   onTab: (t: ViewTab) => void;
 }
 
@@ -39,7 +39,6 @@ export const FavoritesView: React.FC<Props> = ({
   onSelect,
   onDelete,
   onAddToProject,
-  onOpenShootMode,
   onTab,
 }) => {
   const [sub, setSub] = useState<SubTab>('favorites');
@@ -90,6 +89,16 @@ export const FavoritesView: React.FC<Props> = ({
   const openProjectPoses = openProject
     ? (openProject.poseIds.map((id) => poses.find((p) => p.id === id)).filter(Boolean) as Pose[])
     : [];
+
+  const completedPoseIds = openProject?.completedPoseIds || [];
+  const toggleProjectPose = (poseId: string) => {
+    if (!openProject) return;
+    const next = completedPoseIds.includes(poseId)
+      ? completedPoseIds.filter((id) => id !== poseId)
+      : [...completedPoseIds, poseId];
+    saveProject({ ...openProject, completedPoseIds: next });
+    refreshProjects();
+  };
 
   const pickerResults = poses.filter((p) => {
     if (!pickerSearch.trim()) return true;
@@ -162,18 +171,29 @@ export const FavoritesView: React.FC<Props> = ({
             text="با دکمه «افزودن ژست»، ژست‌های این روز را جمع کن تا سر صحنه فقط همان‌ها را اجرا کنی."
           />
         ) : (
-          <div className="grid grid-cols-2 lg:grid-cols-3 gap-3">
-            {openProjectPoses.map((p) => (
-              <PoseCard
-                key={p.id}
-                pose={p}
-                isFavorite={favoriteIds.includes(p.id)}
-                onToggleFavorite={onToggleFavorite}
-                onSelect={onSelect}
-                onDelete={() => removePoseFromOpenProject(p)}
-                onAddToProject={onAddToProject}
-              />
-            ))}
+          <div className="space-y-2.5">
+            {openProjectPoses.map((p) => {
+              const done = completedPoseIds.includes(p.id);
+              return (
+                <div key={p.id} className="flex items-center gap-3 p-2.5 rounded-2xl border border-line">
+                  <button onClick={() => onSelect(p)} className="w-16 h-16 rounded-xl overflow-hidden shrink-0 bg-surface2" aria-label={`باز کردن ${p.title}`}>
+                    <PoseVisual pose={p} />
+                  </button>
+                  <button onClick={() => onSelect(p)} className={`flex-1 text-right text-[12px] font-bold line-clamp-2 ${done ? 'line-through text-muted' : ''}`}>
+                    {p.title}
+                  </button>
+                  <button
+                    onClick={() => toggleProjectPose(p.id)}
+                    className="flex items-center gap-1.5 px-2.5 py-2 rounded-xl text-[10px] font-bold shrink-0"
+                    style={{ background: done ? 'color-mix(in srgb, var(--color-teal) 16%, transparent)' : 'color-mix(in srgb, var(--color-gold) 12%, transparent)', color: done ? 'var(--color-teal)' : 'var(--color-gold)' }}
+                  >
+                    <CheckCircle2 className="w-4 h-4" />
+                    {done ? 'انجام شد' : 'انجام شد'}
+                  </button>
+                  <button onClick={() => removePoseFromOpenProject(p)} className="p-2 text-rose" aria-label="حذف از پروژه">×</button>
+                </div>
+              );
+            })}
           </div>
         )}
 
@@ -208,9 +228,12 @@ export const FavoritesView: React.FC<Props> = ({
                         background: already ? 'color-mix(in srgb, var(--color-teal) 10%, transparent)' : 'transparent',
                       }}
                     >
-                      <span className="flex-1 text-[12px] font-semibold line-clamp-1">{p.title}</span>
+                      <span className="w-14 h-14 rounded-xl overflow-hidden shrink-0 bg-surface2">
+                        <PoseVisual pose={p} />
+                      </span>
+                      <span className="flex-1 text-[12px] font-semibold line-clamp-2">{p.title}</span>
                       {already ? (
-                        <span className="text-[10px] text-teal">اضافه شده</span>
+                        <span className="text-[10px] text-teal shrink-0">اضافه شده</span>
                       ) : (
                         <Plus className="w-4 h-4 text-gold shrink-0" />
                       )}
@@ -254,12 +277,7 @@ export const FavoritesView: React.FC<Props> = ({
               </h2>
               <p className="text-[11px] text-muted mt-1">{list.length} ژست نشان‌شده</p>
             </div>
-            {list.length > 0 && (
-              <button onClick={onOpenShootMode} className="btn btn-primary shrink-0">
-                <Play className="w-3.5 h-3.5" fill="currentColor" />
-                شروع
-              </button>
-            )}
+
           </div>
 
           {list.length === 0 ? (

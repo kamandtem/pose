@@ -8,7 +8,6 @@ import {
   Trash2,
   Database,
   WifiOff,
-  Info,
   Package,
 } from 'lucide-react';
 import { Pose, ViewTab } from '../types/pose';
@@ -190,10 +189,6 @@ export const SettingsView: React.FC<Props> = ({
         </p>
       </div>
 
-      <button onClick={() => onTab('about')} className="card card-hover p-4 w-full flex items-center gap-2.5 text-right">
-        <Info className="w-4 h-4 text-gold" />
-        <span className="flex-1 text-[13px] font-bold">معرفی برنامه و راهنمای استفاده</span>
-      </button>
     </div>
   );
 };

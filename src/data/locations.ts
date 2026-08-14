@@ -8,6 +8,8 @@ export interface LocationInfo {
   subtitle: string;
   /** گرادیان اختصاصی برای تصویرسازی و کارت‌ها */
   colors: [string, string, string];
+  /** عکس کاور واقعی و آفلاین (داخل public/covers) */
+  cover: string;
   bestTime: string;
   light: string;
   wardrobe: string;
@@ -22,6 +24,7 @@ export const LOCATIONS: LocationInfo[] = [
     icon: Waves,
     subtitle: 'ساحل، نخل، آب و آفتاب داغ',
     colors: ['#0E4C5C', '#1B8C93', '#F2C56B'],
+    cover: '/covers/jonoub.jpg',
     bestTime: 'یک ساعت پیش از غروب (Golden Hour) یا نیم‌ساعت پس از غروب برای آسمان بنفش',
     light:
       'نور ساحل بسیار سخت و بازتابی است. سوژه را پشت به خورشید بگذارید و صورت را با رفلکتور طلایی یا فلاش پرکن روشن کنید تا سایه چشم‌ها بسته نشود.',
@@ -42,6 +45,7 @@ export const LOCATIONS: LocationInfo[] = [
     icon: TreePine,
     subtitle: 'جنگل مه‌گرفته، سبزی و رطوبت',
     colors: ['#12352B', '#2F7F5B', '#D9E7A8'],
+    cover: '/covers/shomal.jpg',
     bestTime: 'صبح زود همراه با مه، یا ساعات ابری که نور کاملاً یکدست است',
     light:
       'جنگل نور را می‌بلعد. سوژه را در لبه یک روشنایی (کنار مسیر، حاشیه درختان) بگذارید تا صورت نور بگیرد و پشت تاریک بماند.',
@@ -62,6 +66,7 @@ export const LOCATIONS: LocationInfo[] = [
     icon: Sun,
     subtitle: 'شن، خطوط تمیز و آسمان بی‌انتها',
     colors: ['#4A2E17', '#C98A45', '#F5E0B7'],
+    cover: '/covers/kavir.jpg',
     bestTime: 'نیم‌ساعت اول و آخر روز؛ ظهر کویر نور را کاملاً بی‌روح می‌کند',
     light:
       'شن یک رفلکتور غول‌پیکر است؛ نور از پایین به صورت می‌خورد و سایه‌ها را نرم می‌کند. برای درام، نور را از پهلو بگیرید تا بافت تپه‌ها بیرون بزند.',
@@ -82,6 +87,7 @@ export const LOCATIONS: LocationInfo[] = [
     icon: Landmark,
     subtitle: 'معماری، ستون، پله و باغ کلاسیک',
     colors: ['#26202F', '#7C6A4E', '#EBD6A8'],
+    cover: '/covers/bagh.jpg',
     bestTime: 'اواخر بعدازظهر برای نور مایل روی نما، یا شب با نورپردازی خود عمارت',
     light:
       'از نور پنجره و طاق‌ها به عنوان نور طبیعی جهت‌دار استفاده کنید. زیر سایه‌بان‌ها نور یکدست و بسیار تمیز است.',

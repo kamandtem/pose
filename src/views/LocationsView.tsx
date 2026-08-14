@@ -43,15 +43,17 @@ export const LocationsView: React.FC<Props> = ({ poses, onPickLocation }) => {
               onClick={() => setOpen(expanded ? null : l.key)}
               className="relative w-full text-right"
             >
-              <div
-                className="h-28 relative"
-                style={{
-                  background: `linear-gradient(135deg, ${l.colors[0]}, ${l.colors[1]} 58%, ${l.colors[2]})`,
-                }}
-              >
+              <div className="h-28 relative overflow-hidden">
+                <img
+                  src={l.cover}
+                  alt={l.key}
+                  loading="lazy"
+                  decoding="async"
+                  className="absolute inset-0 w-full h-full object-cover"
+                />
                 <div
                   className="absolute inset-0"
-                  style={{ background: 'linear-gradient(to top, rgba(6,5,10,.72), transparent 70%)' }}
+                  style={{ background: 'linear-gradient(to top, rgba(6,5,10,.82), rgba(6,5,10,.15) 72%)' }}
                 />
                 <div className="absolute bottom-3 right-4 left-4 flex items-end justify-between gap-2">
                   <div>

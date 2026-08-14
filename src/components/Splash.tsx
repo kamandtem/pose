@@ -19,7 +19,7 @@ export const Splash: React.FC<{ leaving?: boolean }> = ({ leaving }) => (
 
     <div className="mt-7 text-center a-fade-up" style={{ animationDelay: '.15s' }}>
       <h1 className="text-2xl font-extrabold gold-text">کارگردان ژست</h1>
-      <p className="mt-1 text-[11px] tracking-[.3em] text-muted">POSE DIRECTOR</p>
+      <p className="mt-1 text-[11px] text-muted">دستیار حرفه‌ای هدایت ژست</p>
     </div>
 
     <div className="absolute bottom-14 w-40 h-1 rounded-full overflow-hidden bg-line">
@@ -33,6 +33,6 @@ export const Splash: React.FC<{ leaving?: boolean }> = ({ leaving }) => (
       />
     </div>
 
-    <p className="absolute bottom-6 text-[10px] text-faint">دستیار حرفه‌ای هدایت ژست</p>
+    <p className="absolute bottom-4 text-[10px] text-faint">برنامه‌نویس: محمدرضا ارجمند</p>
   </div>
 );

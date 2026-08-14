@@ -1,7 +1,5 @@
 import React from 'react';
 import {
-  Shuffle,
-  Play,
   ArrowLeft,
   Heart,
   Clock,
@@ -29,8 +27,6 @@ interface Props {
   onDelete: (p: Pose) => void;
   onAddToProject: (p: Pose) => void;
   onToggleFavorite: (id: string, e: React.MouseEvent) => void;
-  onNextPose: () => void;
-  onOpenShootMode: () => void;
   onOpenAddPose: () => void;
   onPickCategory: (c: CategoryType) => void;
   onPickLocation: (l: LocationType) => void;
@@ -56,8 +52,6 @@ export const HomeView: React.FC<Props> = ({
   onDelete,
   onAddToProject,
   onToggleFavorite,
-  onNextPose,
-  onOpenShootMode,
   onOpenAddPose,
   onPickCategory,
   onPickLocation,
@@ -108,14 +102,6 @@ export const HomeView: React.FC<Props> = ({
           </p>
 
           <div className="flex flex-wrap items-center gap-2 pt-1">
-            <button onClick={onNextPose} className="btn btn-primary">
-              <Shuffle className="w-4 h-4" />
-              پیشنهاد ژست بعدی
-            </button>
-            <button onClick={onOpenShootMode} className="btn btn-ghost">
-              <Play className="w-3.5 h-3.5 text-gold" fill="currentColor" />
-              حالت عکاسی
-            </button>
             <button onClick={onOpenAddPose} className="btn btn-ghost">
               <PlusCircle className="w-4 h-4 text-gold" />
               ژست خودم
@@ -138,10 +124,17 @@ export const HomeView: React.FC<Props> = ({
               onClick={() => onPickLocation(l.key)}
               className="card card-hover relative overflow-hidden p-3.5 text-right h-24 flex flex-col justify-between"
             >
+              <img
+                src={l.cover}
+                alt={l.key}
+                loading="lazy"
+                decoding="async"
+                className="absolute inset-0 w-full h-full object-cover"
+              />
               <div
-                className="absolute inset-0 opacity-45"
+                className="absolute inset-0"
                 style={{
-                  background: `linear-gradient(135deg, ${l.colors[0]}, ${l.colors[1]} 60%, ${l.colors[2]})`,
+                  background: `linear-gradient(135deg, color-mix(in srgb, ${l.colors[0]} 55%, transparent), color-mix(in srgb, ${l.colors[1]} 30%, transparent) 60%, rgba(6,5,10,.55))`,
                 }}
               />
               <div className="relative flex items-center justify-between">
