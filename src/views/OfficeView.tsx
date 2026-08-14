@@ -155,4 +155,3 @@ export const OfficeView: React.FC<Props> = ({ projects, profile, onAddProject, o
     </div>
   );
 };
-EOFFOFFICE
