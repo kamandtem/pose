@@ -171,27 +171,48 @@ export const FavoritesView: React.FC<Props> = ({
             text="با دکمه «افزودن ژست»، ژست‌های این روز را جمع کن تا سر صحنه فقط همان‌ها را اجرا کنی."
           />
         ) : (
-          <div className="space-y-2.5">
+          <div className="grid grid-cols-2 gap-3">
             {openProjectPoses.map((p) => {
               const done = completedPoseIds.includes(p.id);
               return (
-                <div key={p.id} className="flex items-center gap-3 p-2.5 rounded-2xl border border-line">
-                  <button onClick={() => onSelect(p)} className="w-16 h-16 rounded-xl overflow-hidden shrink-0 bg-surface2" aria-label={`باز کردن ${p.title}`}>
+                <button
+                  key={p.id}
+                  onClick={() => onSelect(p)}
+                  className="card p-3 space-y-2 text-right overflow-hidden"
+                >
+                  <div className="w-full aspect-square rounded-2xl overflow-hidden bg-surface2">
                     <PoseVisual pose={p} />
-                  </button>
-                  <button onClick={() => onSelect(p)} className={`flex-1 text-right text-[12px] font-bold line-clamp-2 ${done ? 'line-through text-muted' : ''}`}>
-                    {p.title}
-                  </button>
-                  <button
-                    onClick={() => toggleProjectPose(p.id)}
-                    className="flex items-center gap-1.5 px-2.5 py-2 rounded-xl text-[10px] font-bold shrink-0"
-                    style={{ background: done ? 'color-mix(in srgb, var(--color-teal) 16%, transparent)' : 'color-mix(in srgb, var(--color-gold) 12%, transparent)', color: done ? 'var(--color-teal)' : 'var(--color-gold)' }}
-                  >
-                    <CheckCircle2 className="w-4 h-4" />
-                    {done ? 'انجام شد' : 'انجام شد'}
-                  </button>
-                  <button onClick={() => removePoseFromOpenProject(p)} className="p-2 text-rose" aria-label="حذف از پروژه">×</button>
-                </div>
+                  </div>
+                  <div>
+                    <p className={`text-[11px] font-bold line-clamp-2 ${done ? 'line-through text-muted' : ''}`}>
+                      {p.title}
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-2 justify-end">
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        removePoseFromOpenProject(p);
+                      }}
+                      className="p-1 text-rose rounded-lg"
+                      aria-label="حذف"
+                      title="حذف از پروژه"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        toggleProjectPose(p.id);
+                      }}
+                      className="p-1 rounded-lg text-[10px] font-bold"
+                      style={{ color: done ? 'var(--color-teal)' : 'var(--color-gold)' }}
+                      aria-label="تکمیل"
+                    >
+                      {done ? '✓' : '✓'}
+                    </button>
+                  </div>
+                </button>
               );
             })}
           </div>

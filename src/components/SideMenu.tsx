@@ -77,27 +77,14 @@ export const SideMenu: React.FC<Props> = ({
     action?: () => void;
     accent?: boolean;
   }[] = [
+    { tab: 'office', icon: Briefcase, label: 'دفتر آتلیه' },
     { tab: 'home', icon: Home, label: 'خانه' },
     { tab: 'library', icon: LayoutGrid, label: 'کتابخانه ژست‌ها', badge: counts.total },
-    { tab: 'locations', icon: MapPin, label: 'لوکیشن‌ها' },
+    { tab: 'principles', icon: BookOpen, label: 'اصول ژست‌دهی' },
+    { tab: 'myposes', icon: FolderHeart, label: 'ژست‌های من', badge: counts.mine },
     { tab: 'mylocations', icon: MapPinned, label: 'لوکیشن‌های من' },
     { tab: 'weather', icon: CloudSun, label: 'آب‌وهوا و نور' },
-    { tab: 'favorites', icon: Heart, label: 'علاقه‌مندی‌ها', badge: counts.favorites },
-    { tab: 'myposes', icon: FolderHeart, label: 'ژست‌های من', badge: counts.mine },
-    {
-      icon: PlusCircle,
-      label: 'افزودن ژست جدید',
-      accent: true,
-      action: () => {
-        onOpenAddPose();
-        onClose();
-      },
-    },
-    { tab: 'principles', icon: BookOpen, label: 'اصول ژست‌دهی' },
-    { icon: UserRound, label: 'پروفایل', action: () => { onOpenStudioProfile(); onClose(); } },
     { icon: ClipboardCheck, label: 'چک‌لیست وسایل', action: () => { onOpenChecklist(); onClose(); } },
-    { tab: 'office', icon: Briefcase, label: 'دفتر آتلیه / استودیو' },
-    { tab: 'settings', icon: Settings, label: 'تنظیمات' },
   ];
 
   return (
@@ -130,15 +117,40 @@ export const SideMenu: React.FC<Props> = ({
           if (start !== null && end !== undefined && end - start > 70) onClose();
         }}
       >
-        <div className="sticky top-0 z-10 px-4 py-4 border-b border-line bg-surface">
-          <div className="flex items-center gap-3">
-            <div className="w-14 h-14 rounded-2xl overflow-hidden flex items-center justify-center" style={{ background: 'color-mix(in srgb, var(--color-gold) 16%, transparent)' }}>
-              {profile?.logo ? <img src={profile.logo} alt="تصویر پروفایل" className="w-full h-full object-cover" /> : <UserRound className="w-7 h-7 text-gold" />}
-            </div>
-            <div className="min-w-0">
-              <span className="text-[10px] text-muted">خوش آمدی</span>
-              <b className="block text-[15px] truncate">{profile?.name || 'پروفایل کاربر'}</b>
-            </div>
+        <div className="sticky top-0 z-10 px-4 py-4 space-y-3 border-b border-line bg-surface">
+          <div className="space-y-2">
+            <button className="w-full h-32 rounded-2xl overflow-hidden flex items-center justify-center bg-surface2 border border-line">
+              {profile?.logo ? <img src={profile.logo} alt="تصویر پروفایل" className="w-full h-full object-cover" /> : <UserRound className="w-12 h-12 text-gold" />}
+            </button>
+            <p className="text-[10px] text-muted text-center">لمس برای تغییر تصویر</p>
+          </div>
+          <div>
+            <span className="text-[10px] text-muted">خوش آمدی</span>
+            <b className="block text-[15px]">{profile?.name || 'کاربر'}</b>
+          </div>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={onOpenStudioProfile}
+              className="flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-xl border border-line text-[11px] font-bold"
+              title="ویرایش پروفایل"
+            >
+              <UserRound className="w-4 h-4" />
+              پروفایل
+            </button>
+            <button
+              onClick={() => onNavigate('settings')}
+              className="w-10 h-10 rounded-xl border border-line flex items-center justify-center"
+              title="تنظیمات"
+            >
+              <Settings className="w-4 h-4" />
+            </button>
+            <button
+              onClick={onToggleTheme}
+              className="w-10 h-10 rounded-xl border border-line flex items-center justify-center"
+              title="تغییر تم"
+            >
+              {theme === 'dark' ? <Sun className="w-4 h-4 text-gold" /> : <Moon className="w-4 h-4 text-gold" />}
+            </button>
           </div>
         </div>
 
@@ -180,23 +192,8 @@ export const SideMenu: React.FC<Props> = ({
         </nav>
 
         <div className="px-3 pb-4 pt-1 space-y-2">
-          <button
-            onClick={onToggleTheme}
-            className="w-full flex items-center justify-between gap-3 px-3 py-2.5 rounded-2xl border border-line"
-          >
-            <span className="flex items-center gap-2.5 text-[13px] font-semibold">
-              {theme === 'dark' ? (
-                <Moon className="w-4 h-4 text-gold" />
-              ) : (
-                <Sun className="w-4 h-4 text-gold" />
-              )}
-              {theme === 'dark' ? 'تم تیره' : 'تم روشن'}
-            </span>
-            <span className="text-[10px] text-faint">تغییر</span>
-          </button>
-
           <p className="text-[10px] text-faint text-center leading-relaxed pt-1">
-            نسخه ۱.۰ · کاملاً آفلاین
+            برنامه‌نویس: محمدرضا ارجمند
           </p>
         </div>
       </aside>

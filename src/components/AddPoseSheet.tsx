@@ -32,6 +32,7 @@ const TYPES: PoseType[] = [
   'حرکتی',
 ];
 const DIFFS: DifficultyLevel[] = ['آسان', 'متوسط', 'حرفه‌ای'];
+const LENSES = ['واید (24-35mm)', 'معمولی (50mm)', 'تله (70-85mm)'];
 
 const DIFF_COLOR: Record<DifficultyLevel, string> = {
   'آسان': 'var(--color-teal)',
@@ -536,11 +537,17 @@ export const AddPoseSheet: React.FC<Props> = ({ open, onClose, onSaved, editing 
               />
             </div>
             <div>
-              <span className="label">پیشنهاد لنز / تنظیمات</span>
+              <ChipSelect
+                label="نوع لنز"
+                options={LENSES}
+                value={lens as any}
+                onChange={setLens as any}
+              />
+            </div>
+            <div>
+              <span className="label">تنظیمات اضافی</span>
               <input
-                value={lens}
-                onChange={(e) => setLens(e.target.value)}
-                placeholder="85mm f/1.8"
+                placeholder="f/1.8، ISO، شاتر، ..."
                 className="field"
               />
             </div>

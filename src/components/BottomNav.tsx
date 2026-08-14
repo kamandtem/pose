@@ -23,12 +23,30 @@ export const BottomNav: React.FC<Props> = ({
   onOpenOffice,
 }) => (
   <nav className="fixed bottom-3 left-3 right-3 z-40 safe-bottom">
-    <div className="relative max-w-md mx-auto h-[68px] px-3 flex items-center justify-between rounded-[30px] border border-line bg-surface shadow-xl">
-      <button onClick={onOpenOffice} className="absolute -right-1 -translate-y-1/2 top-1/2 w-14 h-14 rounded-full flex items-center justify-center shadow-lg active:scale-95 transition-transform" style={{ background: 'var(--color-gold)', color: '#241B0C' }} aria-label="دفتر آتلیه" title="دفتر آتلیه"><Pencil className="w-6 h-6" /></button>
-      <div className="w-12 shrink-0" />
-      {ITEMS.map((it) => (
-        <NavBtn key={it.tab} {...it} active={activeTab === it.tab} badge={it.tab === 'favorites' ? favoritesCount : undefined} onClick={() => onTabChange(it.tab)} />
-      ))}
+    <div className="max-w-lg mx-auto flex items-center justify-center gap-2">
+      {/* Office button - isolated on left */}
+      <button
+        onClick={onOpenOffice}
+        className="w-14 h-14 rounded-full flex items-center justify-center shadow-lg active:scale-95 transition-transform shrink-0"
+        style={{ background: 'var(--color-gold)', color: '#241B0C' }}
+        aria-label="دفتر آتلیه"
+        title="دفتر آتلیه"
+      >
+        <Pencil className="w-6 h-6" />
+      </button>
+
+      {/* Navigation bar */}
+      <div className="relative flex-1 h-[68px] px-3 flex items-center justify-between rounded-[30px] border border-line bg-surface shadow-xl">
+        {ITEMS.map((it) => (
+          <NavBtn
+            key={it.tab}
+            {...it}
+            active={activeTab === it.tab}
+            badge={it.tab === 'favorites' ? favoritesCount : undefined}
+            onClick={() => onTabChange(it.tab)}
+          />
+        ))}
+      </div>
     </div>
   </nav>
 );

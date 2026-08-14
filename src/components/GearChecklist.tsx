@@ -98,6 +98,31 @@ export const GearChecklist: React.FC<Props> = ({ storageKey, defaultLocation = '
               <RotateCcw className="w-3 h-3" /> پاک کردن تیک‌ها
             </button>
           </div>
+          
+          {/* Personal Items Section */}
+          <div className="mt-4 pt-4 border-t border-line space-y-3">
+            <span className="label text-[13px] font-bold">وسایل شخصی</span>
+            <div className="space-y-2" id="personal-items">
+              {/* Items will be added here */}
+            </div>
+            <button
+              onClick={() => {
+                const input = prompt('نام وسیله:');
+                if (input?.trim()) {
+                  const list = document.getElementById('personal-items');
+                  if (list) {
+                    const div = document.createElement('div');
+                    div.className = 'flex items-center gap-2.5 p-2.5 rounded-2xl border border-line';
+                    div.innerHTML = `<input type="checkbox" class="w-5 h-5" /><span class="text-[12px] flex-1">${input}</span><button class="text-gold text-[12px]">×</button>`;
+                    list.appendChild(div);
+                  }
+                }
+              }}
+              className="text-[11px] text-gold font-bold flex items-center gap-1"
+            >
+              <Plus className="w-3 h-3" /> افزودن وسیله شخصی
+            </button>
+          </div>
         </div>
       )}
     </div>

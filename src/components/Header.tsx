@@ -25,8 +25,9 @@ export const Header: React.FC<Props> = ({ onOpenMenu, onOpenAddPose }) => (
 
       <div className="flex items-center gap-1.5 mr-auto">
         <button onClick={onOpenAddPose} className="btn btn-primary !px-3 !py-2" aria-label="افزودن ژست جدید">
-          <Plus className="w-4 h-4 text-gold" />
-          <span className="hidden sm:inline">ژست جدید</span>
+          <Plus className="w-4 h-4" />
+          <Camera className="w-4 h-4" />
+          <span className="hidden sm:inline">ژست</span>
         </button>
 
       </div>
