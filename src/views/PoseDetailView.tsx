@@ -210,8 +210,21 @@ export const PoseDetailView: React.FC<Props> = ({
           <Shuffle className="w-4 h-4 text-gold" />
           بعدی
         </button>
-        <button onClick={() => onAddToProject(pose)} className="btn btn-ghost" aria-label="افزودن به پروژه روز">
-          <FolderPlus className="w-4 h-4 text-gold" />
+      </div>
+
+      {/* Execution Buttons */}
+      <div className="flex items-center gap-2 pb-2">
+        <button onClick={() => onAddToProject(pose)} className="btn btn-ghost flex-1">
+          <FolderPlus className="w-4 h-4" />
+          افزودن به ژست روز
+        </button>
+        <button
+          onClick={() => setFilmOpen(true)}
+          className="btn btn-ghost flex-1"
+          style={{ color: 'var(--color-rose)' }}
+        >
+          <Clapperboard className="w-4 h-4" />
+          فیلم‌برداری این ژست
         </button>
       </div>
 
@@ -244,13 +257,7 @@ export const PoseDetailView: React.FC<Props> = ({
         )}
       </Accordion>
 
-      <button
-        onClick={() => setFilmOpen(true)}
-        className="btn w-full !py-3.5"
-        style={{ background: 'color-mix(in srgb, var(--color-rose) 14%, transparent)', border: '1px solid color-mix(in srgb, var(--color-rose) 45%, transparent)', color: 'var(--color-rose)' }}
-      >
-        <Clapperboard className="w-4 h-4" /> فیلم‌برداری همین ژست
-      </button>
+      
 
       <PoseChecklist pose={pose} />
 

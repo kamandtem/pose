@@ -205,11 +205,15 @@ export const FavoritesView: React.FC<Props> = ({
                         e.stopPropagation();
                         toggleProjectPose(p.id);
                       }}
-                      className="p-1 rounded-lg text-[10px] font-bold"
-                      style={{ color: done ? 'var(--color-teal)' : 'var(--color-gold)' }}
+                      className="px-3 py-1.5 rounded-lg text-[10px] font-bold transition-all"
+                      style={{ 
+                        background: done ? 'var(--color-teal)' : 'color-mix(in srgb, var(--color-gold) 16%, transparent)',
+                        color: done ? '#fff' : 'var(--color-gold)',
+                        border: done ? '1px solid var(--color-teal)' : '1px solid var(--color-gold)',
+                      }}
                       aria-label="تکمیل"
                     >
-                      {done ? '✓' : '✓'}
+                      {done ? '✓ شده' : 'انجام شد'}
                     </button>
                   </div>
                 </button>

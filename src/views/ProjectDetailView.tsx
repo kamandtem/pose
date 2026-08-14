@@ -19,7 +19,7 @@ const cleanNumber = (str: string) => parseInt(str.replace(/[^\d]/g, '')) || 0;
 export const ProjectDetailView: React.FC<Props> = ({ project, profile, onBack, onSave, onDelete }) => {
   const [editing, setEditing] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
-  const [showInvoiceModal, setShowInvoiceModal] = useState(false);
+  
   const [projectName, setProjectName] = useState(project.name);
   const [ceremonyServices, setCeremonyServices] = useState<Partial<Record<ServiceType, { checked: boolean; notes?: string }>>>(project.ceremony?.services || {});
   const [ceremonyCameras, setCeremonyCameras] = useState<Partial<Record<CameraType, number>>>(project.ceremony?.cameras || {});
@@ -93,12 +93,12 @@ export const ProjectDetailView: React.FC<Props> = ({ project, profile, onBack, o
             <span className="label text-[13px] font-bold">خدمات</span>
             {SERVICES.map((service) => (
               <div key={service} className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <label className="text-[12px] font-semibold">{service}</label>
+                <div className="flex items-center justify-start gap-3">
                   <ToggleSwitch
                     active={ceremonyServices[service]?.checked || false}
                     onChange={() => handleServiceToggle(service)}
                   />
+                  <label className="text-[12px] font-semibold flex-1">{service}</label>
                 </div>
               </div>
             ))}
@@ -122,14 +122,6 @@ export const ProjectDetailView: React.FC<Props> = ({ project, profile, onBack, o
         </div>
       )}
 
-      {/* Invoice Button */}
-      <button
-        onClick={() => setShowInvoiceModal(true)}
-        className="btn btn-primary w-full"
-      >
-        مشاهده فاکتور
-      </button>
-
       {/* Actions */}
       <div className="flex gap-2 sticky bottom-3">
         <button
@@ -147,15 +139,6 @@ export const ProjectDetailView: React.FC<Props> = ({ project, profile, onBack, o
           <Trash2 className="w-4 h-4" />
         </button>
       </div>
-
-      {/* Invoice Modal */}
-      {showInvoiceModal && (
-        <InvoiceModal
-          project={project}
-          profile={profile}
-          onClose={() => setShowInvoiceModal(false)}
-        />
-      )}
 
       {/* Delete Confirm */}
       {showDeleteConfirm && (
@@ -209,23 +192,7 @@ const ToggleSwitch: React.FC<{ active: boolean; onChange: () => void }> = ({
   </button>
 );
 
-const InvoiceModal: React.FC<{
-  project: OfficeProject;
-  profile: StudioProfile | null;
-  onClose: () => void;
-}> = ({ project, profile, onClose }) => {
-  const invoice = project.ceremonyInvoice || project.formalityInvoice;
-  const [items, setItems] = useState(invoice?.items || []);
-  const [deposit, setDeposit] = useState(invoice?.deposit || 0);
 
-  if (!invoice) return null;
-
-  const handleQuantityChange = (index: number, delta: number) => {
-    const newItems = [...items];
-    newItems[index] = {
-      ...newItems[index],
-      count: Math.max(1, newItems[index].count + delta),
-    };
     setItems(newItems);
   };
 

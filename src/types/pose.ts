@@ -276,6 +276,16 @@ export interface ProjectRevenue {
   formalityTotal: number;
   totalRevenue: number;
 }
+export interface InvoiceRecord {
+  id: string;
+  title: string;
+  customerName: string;
+  date: string;           /** ISO date */
+  items: Array<{ name: string; count: number; price: number }>;
+  total: number;
+  createdAt: number;
+  updatedAt: number;
+}
 
 export type ViewTab =
   | 'home'

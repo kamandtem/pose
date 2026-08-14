@@ -17,6 +17,9 @@ import {
   X,
   ChevronLeft,
   ClipboardCheck,
+  Phone,
+  MessageSquare,
+  Upload,
 } from 'lucide-react';
 import { StudioProfile, ViewTab } from '../types/pose';
 
@@ -34,12 +37,6 @@ interface Props {
   counts: { total: number; favorites: number; mine: number };
 }
 
-/**
- * منوی کناری.
- * از سمت راست باز می‌شود و عمداً کل صفحه را نمی‌پوشاند:
- * از بالا (زیر هدر)، از پایین (بالای نوار پایین) و از سمت چپ فاصله دارد
- * و گوشه‌هایش گرد است.
- */
 export const SideMenu: React.FC<Props> = ({
   open,
   onClose,
@@ -69,6 +66,26 @@ export const SideMenu: React.FC<Props> = ({
     onClose();
   };
 
+  const handleProfileImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const dataUrl = event.target?.result as string;
+        if (profile) {
+          try {
+            const updated = { ...profile, logo: dataUrl, updatedAt: Date.now() };
+            localStorage.setItem('studioProfile', JSON.stringify(updated));
+            window.location.reload();
+          } catch (e) {
+            console.error('Error saving profile image:', e);
+          }
+        }
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
   const items: {
     tab?: ViewTab;
     icon: React.ElementType;
@@ -89,7 +106,7 @@ export const SideMenu: React.FC<Props> = ({
 
   return (
     <>
-      {/* پرده پشت منو: با یک کلیک بسته می‌شود */}
+      {/* پرده پشت منو */}
       <div
         className="fixed inset-0 z-[70] a-fade"
         style={{ background: 'rgba(4,3,8,.5)', backdropFilter: 'blur(2px)' }}
@@ -117,16 +134,33 @@ export const SideMenu: React.FC<Props> = ({
           if (start !== null && end !== undefined && end - start > 70) onClose();
         }}
       >
+        {/* Profile Section */}
         <div className="sticky top-0 z-10 px-4 py-4 space-y-3 border-b border-line bg-surface">
           <div className="space-y-2">
-            <button className="w-full h-32 rounded-2xl overflow-hidden flex items-center justify-center bg-surface2 border border-line">
-              {profile?.logo ? <img src={profile.logo} alt="تصویر پروفایل" className="w-full h-full object-cover" /> : <UserRound className="w-12 h-12 text-gold" />}
-            </button>
-            <p className="text-[10px] text-muted text-center">لمس برای تغییر تصویر</p>
+            <label
+              htmlFor="profile-image-input"
+              className="block w-20 h-20 rounded-full overflow-hidden flex items-center justify-center bg-surface2 border-2 border-gold cursor-pointer hover:opacity-80 transition-opacity mx-auto"
+              title="لمس برای تغییر تصویر"
+            >
+              {profile?.logo ? (
+                <img src={profile.logo} alt="تصویر پروفایل" className="w-full h-full object-cover" />
+              ) : (
+                <UserRound className="w-8 h-8 text-gold" />
+              )}
+            </label>
+            <input
+              id="profile-image-input"
+              type="file"
+              accept="image/*"
+              onChange={handleProfileImageChange}
+              style={{ display: 'none' }}
+              aria-label="انتخاب عکس پروفایل"
+            />
+            <p className="text-[10px] text-muted text-center">لمس برای تغییر</p>
           </div>
-          <div>
+          <div className="text-center">
             <span className="text-[10px] text-muted">خوش آمدی</span>
-            <b className="block text-[15px]">{profile?.name || 'کاربر'}</b>
+            <b className="block text-[14px]">{profile?.name || 'کاربر'}</b>
           </div>
           <div className="flex items-center gap-2">
             <button
@@ -154,6 +188,7 @@ export const SideMenu: React.FC<Props> = ({
           </div>
         </div>
 
+        {/* Navigation Menu */}
         <nav className="p-2.5 space-y-1">
           {items.map((it, idx) => {
             const active = it.tab && activeTab === it.tab;
@@ -191,10 +226,31 @@ export const SideMenu: React.FC<Props> = ({
           })}
         </nav>
 
-        <div className="px-3 pb-4 pt-1 space-y-2">
-          <p className="text-[10px] text-faint text-center leading-relaxed pt-1">
-            برنامه‌نویس: محمدرضا ارجمند
-          </p>
+        {/* Developer Contact Section */}
+        <div className="px-3 pb-4 pt-4 space-y-3 border-t border-line">
+          <div className="space-y-2">
+            <p className="text-[10px] text-muted text-center font-bold">برنامه‌نویس</p>
+            <p className="text-[13px] font-bold text-center">محمدرضا ارجمند</p>
+          </div>
+          <div className="flex items-center gap-2 justify-center">
+            <a
+              href="tel:+989164573083"
+              className="flex items-center gap-1.5 px-3 py-2 rounded-xl border border-line text-[11px] font-bold hover:bg-surface2 transition-colors"
+              title="تماس"
+            >
+              <Phone className="w-4 h-4" />
+              تماس
+            </a>
+            <a
+              href="sms:+989164573083"
+              className="flex items-center gap-1.5 px-3 py-2 rounded-xl border border-line text-[11px] font-bold hover:bg-surface2 transition-colors"
+              title="پیامک"
+            >
+              <MessageSquare className="w-4 h-4" />
+              پیامک
+            </a>
+          </div>
+          <p className="text-[10px] text-muted text-center">09164573083</p>
         </div>
       </aside>
     </>

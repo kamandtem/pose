@@ -75,14 +75,14 @@ const PoseCardBase: React.FC<Props> = ({
         </span>
       </div>
 
-      {/* فقط نشان‌ک «مال من» اگر ژست ساخته‌ی کاربر باشد */}
+      {/* فقط نشان‌ک «ژست من» اگر ژست ساخته‌ی کاربر باشد */}
       {pose.isCustom && (
         <span
-          className="absolute bottom-2.5 right-2.5 flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full"
+          className="absolute bottom-2.5 left-2.5 flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full"
           style={{ background: 'var(--color-gold)', color: '#241B0C' }}
         >
           <Sparkles className="w-2.5 h-2.5" />
-          مال من
+          ژست من
         </span>
       )}
     </div>
