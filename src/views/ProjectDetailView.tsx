@@ -16,7 +16,7 @@ const CAMERAS = ['دستی', 'کرین', 'لرزشگیر', 'عکاسی', 'هلی
 const money = (n: number) => n.toLocaleString('fa-IR');
 const cleanNumber = (str: string) => parseInt(str.replace(/[^\d]/g, '')) || 0;
 
-export const ProjectDetailView: React.FC<Props> = ({ project, onBack, onSave, onDelete }) => {
+export const ProjectDetailView: React.FC<Props> = ({ project, profile, onBack, onSave, onDelete }) => {
   const [editing, setEditing] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [showInvoiceModal, setShowInvoiceModal] = useState(false);
@@ -112,7 +112,7 @@ export const ProjectDetailView: React.FC<Props> = ({ project, onBack, onSave, on
                 <div className="flex items-center justify-between">
                   <label className="text-[12px] font-semibold">{camera}</label>
                   <ToggleSwitch
-                    active={ceremonyCameras[camera] || 0 > 0}
+                    active={(ceremonyCameras[camera] || 0) > 0}
                     onChange={() => handleCameraToggle(camera)}
                   />
                 </div>
@@ -251,7 +251,7 @@ const InvoiceModal: React.FC<{
         {/* Header */}
         <div className="flex items-center justify-between mb-5 pb-4 border-b border-line">
           <div className="flex-1">
-            <p className="text-[13px] text-muted">{profile?.studioName || 'آتلیه'}</p>
+            <p className="text-[13px] text-muted">{profile?.name || 'آتلیه'}</p>
             <h2 className="text-[15px] font-extrabold">{project.name}</h2>
           </div>
           <button
