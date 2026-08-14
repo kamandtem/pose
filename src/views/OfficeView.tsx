@@ -23,33 +23,13 @@ export const OfficeView: React.FC<Props> = ({ projects, profile, onAddProject, o
         text="اینجا پروژه‌های مراسم و فرمالیته‌ات رو مدیریت کن. هر پروژه می‌تونه شامل مراسم، فرمالیته یا هردو باشه."
       />
 
-      <div className="card p-4">
-        {!profile ? (
-          <div className="text-center py-6 space-y-3">
-            <p className="text-[13px] text-muted">ابتدا پروفایل استودیو‌ات رو کامل کن</p>
-            <button onClick={onEditProfile} className="btn btn-primary">
-              <Settings className="w-4 h-4" />
-              تکمیل پروفایل
-            </button>
-          </div>
-        ) : (
-          <div className="flex items-center justify-between gap-3">
-            {profile.logo && <img src={profile.logo} alt="logo" className="w-12 h-12 rounded-lg object-cover" />}
-            <div className="flex-1">
-              <h3 className="font-bold text-[14px]">{profile.name}</h3>
-              <p className="text-[11px] text-muted">{profile.craftCode}</p>
-            </div>
-            <button onClick={onEditProfile} className="btn btn-ghost text-gold"><Settings className="w-4 h-4" /></button>
-          </div>
-        )}
-      </div>
 
       <div className="card p-4 flex items-center justify-between gap-3">
         <div>
           <h2 className="font-extrabold text-[15px]">پروژه‌ها</h2>
           <p className="text-[11px] text-muted mt-1">{fa(projects.length)} پروژه</p>
         </div>
-        <button onClick={onAddProject} className="btn btn-primary" disabled={!profile}>
+        <button onClick={onAddProject} className="btn btn-primary" >
           <Plus className="w-4 h-4" />
           پروژه جدید
         </button>

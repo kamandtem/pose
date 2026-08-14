@@ -231,6 +231,7 @@ export type ThemeType = 'شاد و اکتیو' | 'ارامش' | 'عاشقانه 
 export interface Ceremony {
   id: string;
   date: string;           /** ISO date */
+  location?: string;
   cameras: Partial<Record<CameraType, number>>; /** camera -> count */
   services: Partial<Record<ServiceType, { checked: boolean; notes?: string }>>;
   createdAt: number;
@@ -251,6 +252,8 @@ export interface Formality {
 export interface ProjectInvoice {
   id: string;
   items: Array<{ name: string; count: number; price: number }>;  /** price per unit in تومان */
+  deposit?: number;
+  customerName?: string;
   total: number;
   createdAt: number;
   updatedAt: number;
@@ -286,4 +289,5 @@ export type ViewTab =
   | 'office-project-detail'
   | 'principles'
   | 'settings'
+  | 'checklist'
   | 'detail';

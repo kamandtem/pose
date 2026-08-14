@@ -61,6 +61,7 @@ import { ProjectDetailView } from './views/ProjectDetailView';
 import { StudioProfileDialog } from './components/StudioProfileDialog';
 import { WeatherView } from './views/WeatherView';
 import { MyLocationDialog } from './components/MyLocationDialog';
+import { GearChecklist } from './components/GearChecklist';
 
 export default function App() {
   const [booting, setBooting] = useState(true);
@@ -508,6 +509,8 @@ export default function App() {
           />
         )}
 
+        {tab === 'checklist' && <GearChecklist />}
+
         {tab === 'settings' && (
           <SettingsView
             poses={poses}
@@ -561,6 +564,8 @@ export default function App() {
         onNavigate={goTab}
         onOpenAddPose={openAddPose}
         onOpenStudioProfile={() => setStudioDialogOpen(true)}
+        onOpenChecklist={() => goTab('checklist')}
+        profile={studioProfile}
         theme={prefs.theme}
         onToggleTheme={() =>
           updatePrefs({ ...prefs, theme: prefs.theme === 'dark' ? 'light' : 'dark' })

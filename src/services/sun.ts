@@ -37,7 +37,7 @@ export function computeSun(date: Date, lat: number, lng: number): SunInfo {
   const t = SunCalc.getTimes(date, lat, lng);
 
   const pm: SunEvent[] = [
-    { key: 'goldenPm', label: 'گلدن‌تایم', start: t.goldenHour, end: t.sunset, colors: [C.gold2, C.rose], icon: 'sunset' },
+    { key: 'goldenPm', label: 'گلدن‌تایم عصر', start: new Date(t.sunset.getTime() - 60 * 60 * 1000), end: new Date(t.sunset.getTime() + 30 * 60 * 1000), colors: [C.gold2, C.rose], icon: 'sunset' },
     { key: 'sunset', label: 'غروب آفتاب', start: t.sunset, colors: [C.rose, C.plum], icon: 'sunset' },
     { key: 'bluePm', label: 'ساعت آبی', start: t.sunset, end: t.dusk, colors: [C.plum, C.indigo], icon: 'moon' },
   ];
@@ -45,10 +45,10 @@ export function computeSun(date: Date, lat: number, lng: number): SunInfo {
   const am: SunEvent[] = [
     { key: 'blueAm', label: 'ساعت آبی', start: t.dawn, end: t.sunrise, colors: [C.indigo, C.plum], icon: 'moon' },
     { key: 'sunrise', label: 'طلوع آفتاب', start: t.sunrise, colors: [C.plum, C.gold], icon: 'sunrise' },
-    { key: 'goldenAm', label: 'گلدن‌تایم', start: t.sunrise, end: t.goldenHourEnd, colors: [C.rose, C.gold2], icon: 'sunrise' },
+    { key: 'goldenAm', label: 'گلدن‌تایم صبح', start: new Date(t.sunrise.getTime() - 30 * 60 * 1000), end: new Date(t.sunrise.getTime() + 60 * 60 * 1000), colors: [C.rose, C.gold2], icon: 'sunrise' },
   ];
 
-  return { am, pm, goldenAmStart: t.sunrise, goldenPmStart: t.goldenHour, sunrise: t.sunrise, sunset: t.sunset };
+  return { am, pm, goldenAmStart: new Date(t.sunrise.getTime() - 30 * 60 * 1000), goldenPmStart: new Date(t.sunset.getTime() - 60 * 60 * 1000), sunrise: t.sunrise, sunset: t.sunset };
 }
 
 export interface Countdown {

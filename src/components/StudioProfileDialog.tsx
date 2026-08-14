@@ -72,7 +72,7 @@ export const StudioProfileDialog: React.FC<Props> = ({ open, profile, onCancel, 
         </header>
         <div className="p-4 space-y-4">
           <div>
-            <span className="label flex items-center gap-1.5"><Image className="w-3.5 h-3.5 text-gold" />لوگو</span>
+            <span className="label flex items-center gap-1.5"><Image className="w-3.5 h-3.5 text-gold" />تصویر پروفایل</span>
             <div className="flex items-center gap-3">
               <input type="file" accept="image/*" onChange={handleLogoChange} className="field flex-1" />
               {logo && <img src={logo} alt="logo" className="w-12 h-12 rounded-lg object-cover" />}

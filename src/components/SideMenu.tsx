@@ -16,9 +16,9 @@ import {
   Sun,
   X,
   ChevronLeft,
+  ClipboardCheck,
 } from 'lucide-react';
-import { ViewTab } from '../types/pose';
-import { LogoLockup } from './Logo';
+import { StudioProfile, ViewTab } from '../types/pose';
 
 interface Props {
   open: boolean;
@@ -27,6 +27,8 @@ interface Props {
   onNavigate: (tab: ViewTab) => void;
   onOpenAddPose: () => void;
   onOpenStudioProfile: () => void;
+  onOpenChecklist: () => void;
+  profile: StudioProfile | null;
   theme: 'dark' | 'light';
   onToggleTheme: () => void;
   counts: { total: number; favorites: number; mine: number };
@@ -45,6 +47,8 @@ export const SideMenu: React.FC<Props> = ({
   onNavigate,
   onOpenAddPose,
   onOpenStudioProfile,
+  onOpenChecklist,
+  profile,
   theme,
   onToggleTheme,
   counts,
@@ -91,6 +95,7 @@ export const SideMenu: React.FC<Props> = ({
     },
     { tab: 'principles', icon: BookOpen, label: 'اصول ژست‌دهی' },
     { icon: UserRound, label: 'پروفایل', action: () => { onOpenStudioProfile(); onClose(); } },
+    { icon: ClipboardCheck, label: 'چک‌لیست وسایل', action: () => { onOpenChecklist(); onClose(); } },
     { tab: 'office', icon: Briefcase, label: 'دفتر آتلیه / استودیو' },
     { tab: 'settings', icon: Settings, label: 'تنظیمات' },
   ];
@@ -125,15 +130,16 @@ export const SideMenu: React.FC<Props> = ({
           if (start !== null && end !== undefined && end - start > 70) onClose();
         }}
       >
-        <div className="sticky top-0 z-10 flex items-center justify-between gap-2 px-4 py-3 border-b border-line bg-surface/80 backdrop-blur-md">
-          <LogoLockup size={30} subtitle={false} />
-          <button
-            onClick={onClose}
-            className="p-1.5 rounded-full text-muted hover:text-ink"
-            aria-label="بستن منو"
-          >
-            <X className="w-4 h-4" />
-          </button>
+        <div className="sticky top-0 z-10 px-4 py-4 border-b border-line bg-surface">
+          <div className="flex items-center gap-3">
+            <div className="w-14 h-14 rounded-2xl overflow-hidden flex items-center justify-center" style={{ background: 'color-mix(in srgb, var(--color-gold) 16%, transparent)' }}>
+              {profile?.logo ? <img src={profile.logo} alt="تصویر پروفایل" className="w-full h-full object-cover" /> : <UserRound className="w-7 h-7 text-gold" />}
+            </div>
+            <div className="min-w-0">
+              <span className="text-[10px] text-muted">خوش آمدی</span>
+              <b className="block text-[15px] truncate">{profile?.name || 'پروفایل کاربر'}</b>
+            </div>
+          </div>
         </div>
 
         <nav className="p-2.5 space-y-1">
